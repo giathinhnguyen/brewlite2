@@ -1,0 +1,113 @@
+@startuml
+title Activity Diagram - Đăng nhập BrewLite
+
+!pragma useVerticalIf on
+
+skinparam backgroundColor White
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam conditionStyle InsideDiamond
+skinparam ArrowColor #444444
+
+skinparam activity {
+  BackgroundColor #F2F2F2
+  BorderColor #777777
+  DiamondBackgroundColor White
+  DiamondBorderColor #444444
+  StartColor #222222
+  EndColor #222222
+}
+
+skinparam swimlane {
+  BorderColor #555555
+  TitleBackgroundColor #EEEEEE
+}
+
+|Khách hàng|
+start
+:Chọn đăng nhập;
+
+|Hệ thống BrewLite|
+:Hiển thị màn hình đăng nhập;
+
+repeat
+  |Khách hàng|
+  :Chọn phương thức đăng nhập;
+
+  if (Chọn\nEmail?) then (Có)
+
+    :Nhập email và mật khẩu;
+
+    |Hệ thống BrewLite|
+    :Kiểm tra tài khoản;\nđối chiếu mật khẩu bằng bcrypt;
+
+    if (Thông tin\nchính xác?) then (Có)
+      :Ghi nhận xác thực thành công;
+    else (Không)
+      :Thông báo email hoặc mật khẩu sai;
+    endif
+
+  else (Google)
+
+    |Khách hàng|
+    :Chọn tài khoản Google\nvà thực hiện xác thực;
+
+    |Hệ thống BrewLite|
+    :Xác minh Google ID token\nvà email đã được Google xác minh;
+
+    if (Google\nhợp lệ?) then (Có)
+
+      if (Đã liên kết\nGoogle?) then (Có)
+        :Xác định tài khoản;\nghi nhận xác thực thành công;
+
+      else (Không)
+
+        if (Email đã có\ntài khoản?) then (Có)
+          :Yêu cầu xác nhận\nmật khẩu BrewLite;
+
+          |Khách hàng|
+          :Nhập mật khẩu BrewLite;
+
+          |Hệ thống BrewLite|
+          :Đối chiếu mật khẩu\nvới giá trị băm;
+
+          if (Mật khẩu\nđúng?) then (Có)
+            :Liên kết Google;\nghi nhận xác thực thành công;
+          else (Không)
+            :Thông báo mật khẩu sai;\nkhông liên kết tài khoản;
+          endif
+
+        else (Không)
+          :Tạo tài khoản mới;\nliên kết Google;
+          :Ghi nhận xác thực thành công;
+        endif
+
+      endif
+
+    else (Không)
+      :Thông báo xác thực Google thất bại;
+    endif
+
+  endif
+
+  |Hệ thống BrewLite|
+  if (Xác thực\nthành công?) then (Có)
+    :Cấp JWT thời hạn 1 giờ;
+    :Lưu token tại trình duyệt;\ncập nhật trạng thái đăng nhập;
+    :Chuyển về chức năng trước đó;
+    stop
+
+  else (Không)
+    |Khách hàng|
+    if (Thử\nlại?) then (Có)
+    else (Không)
+      :Đóng màn hình đăng nhập;
+      stop
+    endif
+  endif
+
+repeat while (Tiếp tục\nđăng nhập?) is (Có) not (Không)
+
+stop
+@enduml

@@ -1,0 +1,159 @@
+@startuml
+title Activity Diagram - Đăng ký tài khoản BrewLite
+
+!pragma useVerticalIf on
+
+skinparam backgroundColor White
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam conditionStyle InsideDiamond
+skinparam ArrowColor #444444
+
+skinparam activity {
+  BackgroundColor #F2F2F2
+  BorderColor #777777
+  DiamondBackgroundColor White
+  DiamondBorderColor #444444
+  StartColor #222222
+  EndColor #222222
+}
+
+skinparam swimlane {
+  BorderColor #555555
+  TitleBackgroundColor #EEEEEE
+}
+
+|Khách hàng|
+start
+:Chọn đăng ký;
+
+|Hệ thống BrewLite|
+:Hiển thị phương thức đăng ký;
+
+|Khách hàng|
+if (Chọn\nEmail?) then (Có)
+
+  repeat
+    |Khách hàng|
+    :Nhập họ tên, email,\nmật khẩu và xác nhận mật khẩu;
+
+    |Hệ thống BrewLite|
+    :Kiểm tra dữ liệu, email chưa dùng\nvà hai mật khẩu trùng khớp;
+
+    if (Thông tin\nhợp lệ?) then (Có)
+      :Băm mật khẩu bằng bcrypt;\nlưu yêu cầu chờ xác minh;
+    else (Không)
+      :Thông báo lỗi nhập liệu;
+    endif
+
+  repeat while (Cần sửa\nthông tin?) is (Có) not (Không)
+
+  :Gửi mã xác minh 6 chữ số;
+
+  note right
+    Mã có hiệu lực 5 phút.
+    Tối đa 5 lần nhập sai.
+    Gửi lại sau 60 giây.
+    bcrypt có salt tự động, cost 12.
+  end note
+
+  repeat
+    |Khách hàng|
+    :Nhập mã hoặc yêu cầu gửi lại;
+
+    if (Gửi lại\nmã?) then (Có)
+
+      |Hệ thống BrewLite|
+      if (Đủ\n60 giây?) then (Có)
+        :Gửi mã mới;\ncập nhật thời hạn và lượt nhập;
+      else (Không)
+        :Thông báo thời gian cần chờ;
+      endif
+
+    else (Không)
+
+      |Hệ thống BrewLite|
+      :Kiểm tra mã, thời hạn\nvà số lần nhập sai;
+
+      if (Mã đúng,\ncòn hiệu lực?) then (Có)
+        :Xác nhận email hợp lệ;
+      else (Không)
+        :Ghi nhận lần nhập sai nếu có;\nthông báo lỗi hoặc yêu cầu mã mới;
+      endif
+
+    endif
+
+  repeat while (Chưa xác minh\nthành công?) is (Có) not (Không)
+
+  |Hệ thống BrewLite|
+  :Kiểm tra lại email chưa sử dụng;\ntạo tài khoản và vô hiệu hóa mã;
+
+  if (Tạo tài khoản\nthành công?) then (Có)
+    :Thông báo đăng ký thành công;\nchuyển đến đăng nhập;
+  else (Không)
+    :Thông báo không thể tạo tài khoản;
+  endif
+
+  stop
+
+else (Google)
+
+  |Khách hàng|
+  :Chọn tài khoản Google\nvà thực hiện xác thực;
+
+  |Hệ thống BrewLite|
+  :Xác minh Google ID token\nvà email đã được Google xác minh;
+
+  if (Google\nhợp lệ?) then (Có)
+  else (Không)
+    :Thông báo xác thực thất bại;
+    stop
+  endif
+
+  if (Đã liên kết\nGoogle?) then (Có)
+    :Xác định tài khoản đã liên kết;
+    :Cấp JWT thời hạn 1 giờ;\nthiết lập phiên đăng nhập;
+    :Thông báo thành công;
+    stop
+  else (Không)
+  endif
+
+  if (Email đã có\ntài khoản?) then (Có)
+    :Yêu cầu xác nhận\nmật khẩu BrewLite;
+  else (Không)
+    :Tạo tài khoản mới;\nliên kết Google;
+    :Cấp JWT thời hạn 1 giờ;\nthiết lập phiên đăng nhập;
+    :Thông báo thành công;
+    stop
+  endif
+
+  repeat
+    |Khách hàng|
+    :Nhập mật khẩu BrewLite\nhoặc chọn hủy;
+
+    if (Hủy\nliên kết?) then (Có)
+      |Hệ thống BrewLite|
+      :Không liên kết tài khoản;
+      stop
+    else (Không)
+    endif
+
+    |Hệ thống BrewLite|
+    :Đối chiếu mật khẩu\nvới giá trị băm;
+
+    if (Mật khẩu\nđúng?) then (Có)
+      :Xác nhận quyền sở hữu tài khoản;
+    else (Không)
+      :Thông báo mật khẩu sai;
+    endif
+
+  repeat while (Mật khẩu\nchưa đúng?) is (Có) not (Không)
+
+  :Liên kết Google với\ntài khoản hiện có;
+  :Cấp JWT thời hạn 1 giờ;\nthiết lập phiên đăng nhập;
+  :Thông báo thành công;
+  stop
+
+endif
+@enduml

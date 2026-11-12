@@ -1,0 +1,219 @@
+@startuml
+title Activity Diagram - Mua hàng và thanh toán BrewLite
+
+!pragma useVerticalIf off
+
+skinparam backgroundColor White
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam conditionStyle InsideDiamond
+skinparam ArrowColor #444444
+
+skinparam activity {
+  BackgroundColor #F2F2F2
+  BorderColor #777777
+  DiamondBackgroundColor White
+  DiamondBorderColor #444444
+  StartColor #222222
+  EndColor #222222
+}
+
+skinparam swimlane {
+  BorderColor #555555
+  TitleBackgroundColor #EEEEEE
+}
+
+|Khách hàng|
+start
+:Truy cập BrewLite;
+
+|Hệ thống BrewLite|
+:Hiển thị thực đơn, giá bán và trạng thái khả dụng;
+
+repeat
+  |Khách hàng|
+  :Chọn món;
+
+  if (Thêm\nnhanh?) then (Có)
+    |Hệ thống BrewLite|
+    :Dùng cấu hình mặc định:\nSize S, không topping, đường và đá 100%;
+  else (Không)
+    |Khách hàng|
+    :Chọn size, topping, độ ngọt và lượng đá;
+
+    |Hệ thống BrewLite|
+    :Tính giá món theo size và topping;
+  endif
+
+  |Khách hàng|
+  :Nhấn thêm vào giỏ;
+
+  |Hệ thống BrewLite|
+  :Kiểm tra trạng thái sản phẩm và khả năng cung cấp;
+
+  if (Món\nkhả dụng?) then (Có)
+    :Thêm hoặc gộp dòng sản phẩm cùng cấu hình và ghi chú;
+  else (Không)
+    :Thông báo món không khả dụng;
+  endif
+
+  |Khách hàng|
+repeat while (Chọn\nthêm món?) is (Có) not (Không)
+
+|Hệ thống BrewLite|
+note right
+  Thêm giỏ chưa giữ chỗ tồn kho.
+  Chưa đăng nhập: giỏ khách vãng lai.
+  Đã đăng nhập: giỏ theo tài khoản.
+end note
+
+repeat
+  |Khách hàng|
+  :Mở giỏ hàng; chỉnh số lượng, xóa món, ghi chú;\nchọn món cần thanh toán;
+
+  |Hệ thống BrewLite|
+  :Kiểm tra số lượng >= 1; tính tiền các món được chọn;
+
+  |Khách hàng|
+  if (Dùng mã\nkhuyến mãi?) then (Có)
+    :Xem và nhập mã khuyến mãi [Phần mở rộng];
+
+    |Hệ thống BrewLite|
+    :Kiểm tra mã và điều kiện áp dụng;
+
+    if (Mã\nhợp lệ?) then (Có)
+      :Áp dụng giảm giá; cập nhật tổng tiền;
+    else (Không)
+      :Thông báo mã không hợp lệ;\ncập nhật tiền không áp dụng mã;
+    endif
+  else (Không)
+  endif
+
+  |Khách hàng|
+  :Nhấn tiến hành đặt hàng;
+
+  |Hệ thống BrewLite|
+  if (Phiên\nhợp lệ?) then (Có)
+  else (Không)
+    :Yêu cầu đăng nhập hoặc đăng ký;
+
+    |Khách hàng|
+    :Thực hiện quy trình xác thực;
+
+    |Hệ thống BrewLite|
+    if (Xác thực\nthành công?) then (Có)
+      :Tiếp tục với giỏ hàng đang chọn;
+    else (Không)
+      :Giữ giỏ hàng; không tạo đơn;
+      stop
+    endif
+  endif
+
+  :Kiểm tra món được chọn, cấu hình,\nsố lượng, giá và khuyến mãi;
+
+  if (Dữ liệu và\ngiá hợp lệ?) then (Có)
+    :Thực hiện transaction giữ chỗ kho\nbằng cập nhật có điều kiện;
+
+    if (Giữ chỗ\nthành công?) then (Có)
+      :Tạo đơn chờ thanh toán; lưu thời điểm hết hạn giữ chỗ;
+    else (Không)
+      :Rollback transaction; thông báo không đủ hàng;
+    endif
+
+  else (Không)
+    :Cập nhật thông tin giỏ;\nthông báo thay đổi và yêu cầu xác nhận;
+  endif
+
+repeat while (Chưa tạo\nđược đơn?) is (Có) not (Không)
+
+repeat
+  |Hệ thống BrewLite|
+  :Hiển thị đơn hàng và tổng tiền thanh toán;
+
+  |Khách hàng|
+  :Kiểm tra họ tên, số điện thoại; nhập ghi chú chung nếu có;
+  :Chọn ví điện tử hoặc thẻ ngân hàng;
+  :Nhấn xác nhận và thanh toán;
+
+  |Hệ thống BrewLite|
+  :Kiểm tra phiên, trạng thái đơn,\nsố tiền và hiệu lực giữ chỗ;
+
+  if (Đủ điều kiện\nthanh toán?) then (Có)
+  else (Không)
+    :Đối soát giao dịch hiện có;
+
+    if (Đã xác định\nchưa thu tiền?) then (Có)
+      :Hủy hoặc đánh dấu hết hạn; giải phóng giữ chỗ an toàn;
+    else (Không)
+      :Xử lý theo trạng thái thực tế:\nchờ xác nhận, hoàn tất hoặc hoàn tiền;
+    endif
+
+    :Thông báo trạng thái đơn;
+    stop
+  endif
+
+  :Khởi tạo giao dịch với cổng đã chọn;\nsử dụng Idempotency-Key;
+
+  |Khách hàng|
+  :Thực hiện xác thực thanh toán trên cổng thanh toán;
+
+  |Hệ thống BrewLite|
+  :Tiếp nhận và xác minh kết quả giao dịch;
+
+  while (Kết quả\nchưa rõ?) is (Có)
+    :Giữ trạng thái chờ xác nhận; hiển thị đang xử lý;
+    :Đối soát qua webhook hoặc truy vấn cổng thanh toán;
+  endwhile (Không)
+
+  if (Thanh toán\nthành công?) then (Có)
+
+    if (Đơn còn\nthực hiện được?) then (Có)
+      :Cập nhật PAID; xác nhận trừ tồn kho một lần;
+      :Cộng điểm một lần [Phần mở rộng];
+      :Lưu kết quả giao dịch; thông báo mua hàng thành công;
+    else (Không)
+      :Ghi nhận tiền đã thu; xử lý hoàn tiền hoặc bù trừ;
+      :Điều chỉnh giữ chỗ phù hợp; thông báo kết quả xử lý;
+      stop
+    endif
+
+  else (Không)
+    :Ghi nhận thanh toán thất bại; thông báo khách hàng;
+
+    |Khách hàng|
+    if (Thanh toán\nlại?) then (Có)
+
+      |Hệ thống BrewLite|
+      :Kiểm tra giao dịch cũ đã thất bại\nvà giữ chỗ còn hiệu lực;
+
+      if (Có thể\nthử lại?) then (Có)
+        :Chuẩn bị lần thanh toán mới;
+      else (Không)
+        :Đánh dấu đơn hết hạn; giải phóng giữ chỗ một lần;
+        :Thông báo cần đặt hàng lại;
+        stop
+      endif
+
+    else (Không)
+      |Hệ thống BrewLite|
+      :Hủy đơn; giải phóng giữ chỗ một lần;
+      :Đưa món về giỏ theo chính sách; thông báo hủy đơn;
+      stop
+    endif
+  endif
+
+repeat while (Đơn chưa\nPAID?) is (Có) not (Không)
+
+|Khách hàng|
+if (Xem\nlịch sử?) then (Có)
+  :Mở lịch sử và chọn đơn;
+
+  |Hệ thống BrewLite|
+  :Kiểm tra phiên và quyền sở hữu;\nhiển thị thông tin đơn hàng;
+else (Không)
+endif
+
+|Khách hàng|
+stop
+@enduml
