@@ -1,0 +1,119 @@
+@startuml 02-quan-ly-tai-khoan
+hide footbox
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam maxMessageSize 360
+skinparam sequenceMessageAlign center
+skinparam sequenceLifeLineBackgroundColor #DBEAFE
+skinparam sequenceActivationBorderColor #475569
+skinparam sequenceArrowColor #334155
+skinparam sequenceLifeLineBorderColor #94A3B8
+skinparam sequenceParticipantBackgroundColor #F3F6F8
+skinparam sequenceParticipantBorderColor #475569
+skinparam sequenceGroupBorderColor #64748B
+skinparam noteBackgroundColor #F8FAFC
+skinparam noteBorderColor #CBD5E1
+title SD02 · QUẢN LÝ TÀI KHOẢN
+caption Đăng ký email, xác minh mã và đăng nhập email / Google · Một trang đăng nhập cho khách và admin
+autonumber
+
+actor "Người dùng" as user
+boundary "Giao diện tài khoản" as web
+control "Auth / Verification API" as auth
+database "PostgreSQL" as db
+participant "Dịch vụ Email" as mail <<external>>
+participant "Google Auth Provider" as google <<external>>
+
+note over user, google
+Đăng ký email chưa tạo User ngay: hệ thống lưu yêu cầu chờ xác minh. Tài khoản Google có thể được tạo ở lần xác thực
+Google đầu tiên.
+end note
+opt Người dùng muốn đăng ký bằng email
+user -> web : Nhập họ tên, email, mật khẩu và xác nhận mật khẩu
+activate web
+web -> auth : POST /api/auth/register
+activate auth
+auth -> auth : Kiểm tra dữ liệu đăng ký
+auth -> db : Kiểm tra email đã có tài khoản hay chưa
+activate db
+db --> auth : Kết quả thao tác
+deactivate db
+alt Dữ liệu hợp lệ, email chưa có tài khoản, gửi thư thành công
+auth -> auth : Băm mật khẩu và mã xác minh bằng bcrypt
+auth -> db : Lưu EmailRegistration, mã đã băm và hạn xác minh
+activate db
+db --> auth : Kết quả thao tác
+deactivate db
+auth -> mail : Gửi mã xác minh 6 chữ số qua SMTP
+activate mail
+mail --> auth : Chấp nhận gửi thư
+deactivate mail
+auth --> web : registrationId, expiresAt và thời gian gửi lại
+deactivate web
+deactivate auth
+mail ->> user : Email chứa mã xác minh
+user -> web : Nhập mã nhận được trong email
+activate web
+web -> auth : POST /api/auth/verify-email
+activate auth
+auth -> db : Khóa yêu cầu; kiểm tra mã, hạn và số lần thử
+activate db
+db --> auth : Kết quả thao tác
+deactivate db
+alt Mã đúng, còn hạn và chưa vượt số lần thử
+auth -> db : Tạo User và xóa yêu cầu chờ trong một transaction
+activate db
+db --> auth : Kết quả thao tác
+deactivate db
+auth --> web : Xác minh thành công; yêu cầu đăng nhập
+deactivate web
+deactivate auth
+else Mã sai / hết hạn / đã sử dụng
+auth --> web : 400 · Thông báo lỗi; không tạo tài khoản
+end
+else Email trùng / dữ liệu sai / gửi thư lỗi
+auth --> web : 400 / 409 / 503 · Lỗi tương ứng; không tạo User
+end
+end
+activate web
+activate auth
+alt Đăng nhập bằng email
+user -> web : Nhập email và mật khẩu BrewLite
+web -> auth : POST /api/auth/login
+auth -> db : Tìm User theo email
+activate db
+db --> auth : Thông tin User, role và passwordHash nếu có
+deactivate db
+auth -> auth : So khớp mật khẩu bằng bcrypt.compare
+else Đăng nhập / đăng ký bằng Google
+user -> web : Chọn đăng nhập Google
+web -> google : Mở luồng Google Identity Services
+user -> google : Chọn tài khoản và chấp thuận xác thực
+google --> web : ID token qua callback của giao diện
+web -> auth : POST /api/auth/google với credential
+auth -> auth : Google SDK kiểm tra token, audience và email_verified
+auth -> db : Tìm theo googleId; tạo User mới hoặc liên kết an toàn
+activate db
+db --> auth : User của danh tính đã xác thực
+deactivate db
+end
+alt Xác thực và liên kết tài khoản hợp lệ
+auth -> auth : Ký JWT: sub = userId, role; hiệu lực 1 giờ
+auth --> web : accessToken và hồ sơ người dùng / vai trò
+web -> web : Lưu phiên và điều hướng theo vai trò
+web --> user : Khách: trang mua hàng; admin: giao diện quản lý
+else Sai thông tin / token Google sai / cần xác nhận liên kết
+auth --> web : 401 hoặc 409 · Không cấp phiên mới
+web --> user : Hiển thị lỗi hoặc yêu cầu mật khẩu để liên kết
+end
+deactivate auth
+deactivate web
+note over user, google
+Mã email có hạn 5 phút, tối đa 5 lần nhập sai; gửi lại sau tối thiểu 60 giây. Email trùng với tài khoản Google không tự
+động liên kết chỉ vì cùng địa chỉ.
+end note
+
+footer BrewLite · Đối chiếu UseCase và source · 11/11/2026
+@enduml

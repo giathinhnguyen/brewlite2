@@ -1,0 +1,196 @@
+@startuml 03-dat-hang-thanh-toan
+hide footbox
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam maxMessageSize 360
+skinparam sequenceMessageAlign center
+skinparam sequenceLifeLineBackgroundColor #DBEAFE
+skinparam sequenceActivationBorderColor #475569
+skinparam sequenceArrowColor #334155
+skinparam sequenceLifeLineBorderColor #94A3B8
+skinparam sequenceParticipantBackgroundColor #F3F6F8
+skinparam sequenceParticipantBorderColor #475569
+skinparam sequenceGroupBorderColor #64748B
+skinparam noteBackgroundColor #F8FAFC
+skinparam noteBorderColor #CBD5E1
+title SD03 · ĐẶT HÀNG – THANH TOÁN
+caption Luồng checkout có khuyến mãi, giữ nguyên liệu và hai phương thức thanh toán không tiền mặt
+autonumber
+
+actor "Khách hàng" as user
+boundary "Checkout / Hóa đơn" as web
+control "Cart / Promotions API" as cart
+control "OrdersService" as order
+control "Payments API" as pay
+control "InventoryService" as stock
+database "PostgreSQL" as db
+participant "VNPay / ZaloPay" as gateway <<external>>
+
+note over user, gateway
+Tiền điều kiện: khách đã đăng nhập, chọn món trong giỏ; món đổi thưởng (nếu có) đã được giữ điểm. Backend quyết định số
+tiền và trạng thái.
+end note
+user -> web : Chọn món cần thanh toán; nhập mã khuyến mãi nếu có
+activate web
+web -> cart : POST /api/rewards/cart/quote với itemIds và code
+activate cart
+cart -> db : Đọc giỏ thuộc khách, giá và điều kiện khuyến mãi
+activate db
+db --> cart : Kết quả thao tác
+deactivate db
+cart --> web : Tổng tiền, giảm giá và số tiền cuối do server tính
+deactivate web
+deactivate cart
+user -> web : Xác nhận họ tên, điện thoại và số tiền
+activate web
+web -> order : POST /api/orders + JWT, expectedAmount, idempotencyKey
+activate order
+order -> db : Bắt đầu transaction; khóa khách, đọc giỏ và tính lại giá
+activate db
+db --> order : Kết quả thao tác
+deactivate db
+order -> stock : Kiểm tra định lượng, topping và kho khả dụng
+activate stock
+stock -> db : Đọc công thức và onHand − reserved
+activate db
+db --> stock : Kết quả thao tác
+deactivate db
+stock --> order : Kết quả kiểm tra khả năng phục vụ
+deactivate stock
+break Món không hợp lệ / thiếu nguyên liệu / giá đã thay đổi
+order -> db : Rollback transaction
+activate db
+db --> order : Kết quả thao tác
+deactivate db
+order --> web : 400 / 409 · Không tạo đơn và không giữ kho
+web --> user : Thông báo để điều chỉnh và xác nhận lại
+end
+order -> db : Tạo Order PENDING_PAYMENT và snapshot các món / giá
+activate db
+db --> order : Kết quả thao tác
+deactivate db
+order -> stock : reserve() theo công thức đã tính
+activate stock
+stock -> db : Tăng reserved có điều kiện; lưu snapshot nguyên liệu
+activate db
+db --> stock : Kết quả thao tác
+deactivate db
+stock --> order : Đã giữ nguyên liệu
+deactivate stock
+order -> db : Gắn quà đổi thưởng, xóa các dòng giỏ đã đặt; commit
+activate db
+db --> order : Kết quả thao tác
+deactivate db
+order --> web : orderId, finalAmount và reservationExpiresAt
+deactivate web
+deactivate order
+user -> web : Chọn thẻ nội địa VNPay hoặc ví / QR ZaloPay
+activate web
+web -> pay : POST /api/payments với orderId, channel và khóa chống lặp
+activate pay
+pay -> db : Kiểm tra chủ đơn, hạn giữ kho và payment đã tồn tại
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+alt Thẻ nội địa VNPay
+pay -> pay : Ký URL thanh toán HMAC-SHA512; BankCode = VNBANK
+pay -> db : Lưu Payment PENDING và paymentUrl
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+else Ví / QR ZaloPay
+pay -> db : Lưu Payment PENDING trước khi gọi cổng
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+pay -> gateway : Tạo giao dịch ZaloPay sandbox có MAC HMAC-SHA256
+activate gateway
+gateway --> pay : order_url / dữ liệu QR
+deactivate gateway
+pay -> db : Lưu đường dẫn thanh toán vào payment
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+end
+pay --> web : URL thanh toán hoặc dữ liệu để hiển thị QR
+deactivate pay
+web --> user : Mở cổng thẻ hoặc hiển thị mã QR
+deactivate web
+user -> gateway : Xác nhận thanh toán / OTP, hoặc hủy trên cổng
+loop Mỗi thông báo nhận được; callback / Return có thể lặp
+alt Thông báo trực tiếp từ cổng
+gateway ->> pay : VNPay IPN hoặc ZaloPay callback
+else Kết quả qua trình duyệt
+gateway --> web : Return / redirect chứa kết quả có chữ ký
+web -> pay : POST /api/payments/{provider}/result, không cần JWT
+end
+activate pay
+pay -> pay : Xác minh chữ ký / MAC và kết quả theo giao thức cổng
+opt ZaloPay Return hoặc cần truy vấn để đối soát
+pay -> gateway : Truy vấn trạng thái thanh toán bằng request đã ký
+activate gateway
+gateway --> pay : Thành công / thất bại / đang xử lý hoặc lỗi kết nối
+deactivate gateway
+end
+alt Dữ liệu hợp lệ và khớp mã giao dịch / số tiền
+pay -> db : Khóa khách và kiểm tra trạng thái chống xử lý trùng
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+alt Thành công, đơn còn được phép hoàn tất, chưa xử lý
+pay -> order : markPaid() trong transaction
+activate order
+order -> stock : settle(DEDUCTED)
+activate stock
+stock -> db : Trừ onHand và reserved đúng snapshot, đúng một lần
+activate db
+db --> stock : Kết quả thao tác
+deactivate db
+stock --> order : Đã quyết toán kho
+deactivate stock
+order -> db : Order PAID, paidAt; chốt điểm đổi thưởng và tích điểm
+activate db
+db --> order : Kết quả thao tác
+deactivate db
+order --> pay : Đã ghi nhận thanh toán
+deactivate order
+pay -> db : Payment SUCCESS; commit transaction
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+else Cổng xác nhận thất bại / khách hủy thanh toán
+pay -> db : Payment FAILED, Order PAYMENT_FAILED; giữ kho còn hạn
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+else Kết quả đã xử lý trước đó
+pay -> pay : Trả trạng thái hiện có, không trừ kho / cộng điểm lần nữa
+else Chưa rõ kết quả hoặc thanh toán thành công đến muộn
+pay -> db : Tiếp tục chờ / đánh dấu needsReview; không tự báo PAID
+activate db
+db --> pay : Kết quả thao tác
+deactivate db
+end
+else Chữ ký sai hoặc thông tin không khớp
+pay -> pay : Từ chối thông báo; phản hồi lỗi đúng kênh gửi
+end
+deactivate pay
+end
+web -> order : GET /api/orders/:id + JWT của chủ đơn
+activate order
+order -> db : Đọc trạng thái đơn, payment và các món đã chốt
+activate db
+db --> order : Kết quả thao tác
+deactivate db
+order --> web : Hóa đơn và trạng thái đã xác minh
+deactivate order
+web --> user : Thành công → hóa đơn; thất bại → thông báo / thử lại khi còn hạn
+note over user, gateway
+Hết hạn và an toàn đối soát: chỉ giải phóng nguyên liệu / điểm khi đã xác định được kết quả; giao dịch chưa rõ không tự
+xem là thất bại. Hoàn tiền sau khi đã trả nằm ngoài phạm vi SD03.
+end note
+
+footer BrewLite · Đối chiếu UseCase và source · 11/11/2026
+@enduml

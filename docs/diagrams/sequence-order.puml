@@ -1,0 +1,102 @@
+@startuml 01-he-thong-dat-mon
+hide footbox
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam maxMessageSize 360
+skinparam sequenceMessageAlign center
+skinparam sequenceLifeLineBackgroundColor #DBEAFE
+skinparam sequenceActivationBorderColor #475569
+skinparam sequenceArrowColor #334155
+skinparam sequenceLifeLineBorderColor #94A3B8
+skinparam sequenceParticipantBackgroundColor #F3F6F8
+skinparam sequenceParticipantBorderColor #475569
+skinparam sequenceGroupBorderColor #64748B
+skinparam noteBackgroundColor #F8FAFC
+skinparam noteBorderColor #CBD5E1
+title SD01 · HỆ THỐNG ĐẶT MÓN
+caption Luồng tổng quan từ xem thực đơn đến tra cứu đơn hàng · Tham chiếu SD02 và SD03
+autonumber
+
+actor "Người dùng" as user
+boundary "Web BrewLite" as web
+control "Quản lý tài khoản" as auth
+control "Thực đơn / Giỏ hàng" as cart
+control "Đặt hàng / Thanh toán" as order
+database "PostgreSQL" as db
+participant "Cổng thanh toán" as gateway <<external>>
+
+note over user, gateway
+Phạm vi: hai nhóm chức năng trong UseCase tổng quát. Sơ đồ này mô tả phối hợp; SD02 và SD03 mô tả chi tiết.
+end note
+user -> web : Mở website, xem thực đơn
+activate web
+web -> cart : GET /api/products
+activate cart
+cart -> db : Đọc món, size, công thức và tồn kho khả dụng
+activate db
+db --> cart : Dữ liệu sản phẩm / nguyên liệu
+deactivate db
+cart --> web : Thực đơn và số lượng có thể bán
+deactivate cart
+web --> user : Hiển thị danh sách món
+deactivate web
+opt Chưa đăng nhập và muốn mua hàng bằng tài khoản
+ref over user, db
+SD02 · Quản lý tài khoản
+Đăng ký / xác minh email / đăng nhập email hoặc Google
+end ref
+end
+loop Mỗi lần chọn hoặc điều chỉnh một món
+user -> web : Chọn món, size, topping, độ ngọt / đá và số lượng
+activate web
+web -> cart : Thêm / sửa / xóa món trong giỏ
+activate cart
+alt Đã đăng nhập
+cart -> db : Kiểm tra cấu hình và kho; lưu giỏ theo userId
+activate db
+db --> cart : Giỏ hàng đã cập nhật
+deactivate db
+else Khách chưa đăng nhập
+cart -> cart : Lưu giỏ khách trong localStorage
+end
+cart --> web : Giỏ hàng, số lượng và thông báo lỗi nếu có
+deactivate cart
+web --> user : Hiển thị giỏ và cập nhật số lượng trên biểu tượng
+deactivate web
+end
+opt Đăng nhập sau khi đã có giỏ khách
+web -> cart : Đồng bộ giỏ khách với syncId
+activate cart
+cart -> db : Gộp giỏ an toàn, kiểm tra kho và chống lặp
+activate db
+db --> cart : Kết quả thao tác
+deactivate db
+cart --> web : Giỏ tài khoản / cảnh báo món không còn phù hợp
+deactivate cart
+end
+user -> web : Chọn món cần đặt và tiến hành thanh toán
+ref over user, gateway
+SD03 · Đặt hàng – thanh toán
+Tính giá / khuyến mãi → tạo đơn → giữ kho → xác minh kết quả cổng
+end ref
+user -> web : Xem lịch sử hoặc chi tiết đơn hàng
+activate web
+web -> order : GET /api/orders hoặc /api/orders/:id + JWT
+activate order
+order -> db : Đọc đơn thuộc người dùng hiện tại
+activate db
+db --> order : Đơn hàng, món và trạng thái thanh toán
+deactivate db
+order --> web : Dữ liệu lịch sử / hóa đơn
+deactivate order
+web --> user : Hiển thị kết quả và trạng thái mới nhất
+deactivate web
+note over user, gateway
+Giỏ khách là một luồng tùy chọn. Đặt hàng, lịch sử và chi tiết đơn được bảo vệ bằng JWT; phạm vi sơ đồ không bao gồm
+quản trị quán.
+end note
+
+footer BrewLite · Đối chiếu UseCase và source · 11/11/2026
+@enduml
