@@ -1,0 +1,301 @@
+@startuml sequence-checkout
+hide footbox
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam maxMessageSize 270
+skinparam sequenceMessageAlign center
+skinparam sequenceLifeLineBackgroundColor #DBEAFE
+skinparam sequenceArrowColor #334155
+skinparam sequenceLifeLineBorderColor #64748B
+skinparam sequenceParticipantBackgroundColor #EFF6FF
+skinparam sequenceParticipantBorderColor #475569
+skinparam sequenceGroupBorderColor #64748B
+skinparam noteBackgroundColor #FFFBEB
+skinparam noteBorderColor #D6B87A
+title SD03 - ĐẶT VÀ THANH TOÁN ĐƠN HÀNG
+caption Task 2.2 - Mô hình theo đặc tả Task 1.3 - Có Activation Bar
+autonumber
+actor "Customer\nKhách hàng" as customer
+boundary "React/Vite UI\nGiao diện BrewLite" as ui
+control "NestJS API\nAuth / Cart / Orders / Payments" as api
+database "Database\nPostgreSQL" as db
+participant "Payment Service\nVí điện tử / Cổng thẻ" as gateway
+
+note over customer, gateway
+Tiền điều kiện: hệ thống hoạt động; khách đã truy cập website.
+Các thao tác giỏ hàng, khuyến mãi, đặt đơn và thanh toán yêu cầu đăng nhập.
+Phạm vi kết thúc tại thông báo và lịch sử đơn; hoàn tiền sau PAID là use case khác.
+end note
+
+== 1. Xem menu, chọn món và quản lý giỏ ==
+customer -> ui : Mở menu, chọn món
+activate ui
+ui -> api : GET /api/products; GET /api/products/:id
+activate api
+api -> db : Đọc món, giá, size, topping và khả dụng
+activate db
+db --> api : Dữ liệu menu / chi tiết món
+deactivate db
+api --> ui : 200 - Danh sách / chi tiết món
+deactivate api
+ui --> customer : Hiển thị món và tùy chọn
+deactivate ui
+opt Chưa đăng nhập hoặc phiên đã hết hạn
+ref over customer, api : SD02 - Đăng ký / đăng nhập, nhận JWT
+end
+loop Thêm / sửa / xóa món, số lượng, ghi chú và chọn món thanh toán
+customer -> ui : Chọn size, topping, đường, đá; cập nhật giỏ
+activate ui
+ui -> ui : Validate lựa chọn và số lượng ở frontend
+ui -> api : Yêu cầu cập nhật giỏ + Bearer JWT
+activate api
+api -> api : AuthGuard kiểm tra chữ ký, hạn JWT; lấy userId\nValidate dữ liệu và quyền sở hữu giỏ
+alt JWT thiếu / sai / hết hạn
+api --> ui : 401 - Không cập nhật giỏ; yêu cầu đăng nhập lại
+else JWT hợp lệ nhưng dữ liệu sai
+api --> ui : 400 - Chỉ rõ trường cần sửa
+else JWT và dữ liệu hợp lệ
+api -> db : Kiểm tra cấu hình món / khả dụng; cập nhật giỏ theo userId
+activate db
+db --> api : Giỏ mới hoặc lỗi món không còn khả dụng
+deactivate db
+api --> ui : 200 - Giỏ cập nhật / lỗi nghiệp vụ
+end
+deactivate api
+ui --> customer : Hiển thị giỏ, tổng tiền hoặc lỗi cần sửa
+deactivate ui
+end
+
+== 2. Khuyến mãi và xác nhận thông tin ==
+opt Khách nhập / chọn mã khuyến mãi
+customer -> ui : Áp dụng mã cho các món đã chọn
+activate ui
+ui -> api : POST /api/rewards/cart/quote + JWT, itemIds, code
+activate api
+api -> api : Kiểm tra JWT, validate và quyền sở hữu giỏ
+api -> db : Đọc giá hiện tại và điều kiện / hạn khuyến mãi
+activate db
+db --> api : Dữ liệu để tính giá tại server
+deactivate db
+alt Mã hợp lệ và đủ điều kiện
+api --> ui : 200 - Tạm tính, giảm giá, finalAmount
+else Mã sai / hết hạn / không đủ điều kiện
+api --> ui : Lỗi mã khuyến mãi; không áp dụng giảm giá
+ui -> ui : Giữ giá chưa giảm; cho bỏ / thay mã
+end
+deactivate api
+ui --> customer : Hiển thị tổng tiền và kết quả áp dụng mã
+deactivate ui
+end
+
+== 3. Tạo đơn và giữ nguyên liệu trong transaction ==
+customer -> ui : Tiến hành đặt hàng; xác nhận tên, điện thoại và tổng tiền
+activate ui
+ui -> ui : Validate dữ liệu bắt buộc ở frontend
+ui -> api : POST /api/orders + JWT\nitemIds, expectedAmount, idempotencyKey, thông tin khách
+activate api
+api -> api : Kiểm tra JWT; validate body; xác định userId từ JWT
+alt JWT không hợp lệ / dữ liệu sai
+api --> ui : 401 / 400 - Không tạo đơn, không giữ kho
+else Yêu cầu hợp lệ
+group Transaction A - Tạo đơn và giữ kho: cùng commit hoặc cùng rollback
+api -> db : BEGIN; khóa dữ liệu khách / giỏ / kho liên quan
+activate db
+db --> api : Đã bắt đầu transaction
+api -> db : Đọc giỏ thuộc khách; tính lại giá / khuyến mãi\nKiểm tra công thức và onHand - reserved
+db --> api : Giá hiện tại, tổng tiền và nguyên liệu khả dụng
+alt Hết hàng / không đủ nguyên liệu / món ngừng bán
+api -> db : ROLLBACK
+db --> api : Không lưu đơn, không giữ nguyên liệu
+else Giá đã thay đổi so với expectedAmount
+api -> db : ROLLBACK
+db --> api : Không tạo đơn; cần khách xác nhận giá mới
+else Món và giá hợp lệ, đủ nguyên liệu
+api -> db : INSERT Order(PENDING_PAYMENT), OrderItems và snapshot giá\nTăng reserved có điều kiện; lưu snapshot nguyên liệu / hạn giữ
+db --> api : orderId, finalAmount, reservationExpiresAt
+api -> db : Gắn quyền lợi đổi thưởng nếu có; xóa các dòng giỏ đã đặt; COMMIT
+db --> api : Đơn và giữ kho được lưu nguyên tử
+end
+deactivate db
+end
+api --> ui : 201 - Đơn chờ thanh toán\nhoặc 400 / 409 - hết hàng / thay đổi giá
+end
+deactivate api
+ui --> customer : Hiển thị đơn và phương thức; nếu lỗi: cập nhật giỏ / xác nhận lại
+deactivate ui
+
+opt Đã có orderId hợp lệ và còn thời gian thanh toán
+== 4. Tạo giao dịch và chống yêu cầu gửi lại ==
+loop Mỗi yêu cầu thanh toán; gửi lại cùng thao tác dùng cùng idempotencyKey
+customer -> ui : Chọn ví điện tử hoặc thẻ ngân hàng; thanh toán
+activate ui
+ui -> api : POST /api/payments + JWT\norderId, channel, idempotencyKey
+activate api
+api -> api : Kiểm tra JWT, validate và quyền sở hữu đơn
+api -> db : Kiểm tra trạng thái / hạn giữ kho; tra khóa chống lặp\nRàng buộc unique hoặc khóa dữ liệu để chống hai request đồng thời
+activate db
+db --> api : Đơn, payment cũ và kết quả kiểm tra
+deactivate db
+alt Khóa đã tồn tại, cùng đơn / phương thức / nội dung
+api --> ui : Trả payment / URL / trạng thái đã có; không tạo giao dịch thứ hai
+else Khóa trùng nhưng nội dung khác / đơn sai / đã hết hạn
+api --> ui : 400 / 403 / 409 - Từ chối; không gọi cổng
+else Yêu cầu mới hợp lệ
+api -> db : Lưu Payment(PENDING), khóa chống lặp và mã tham chiếu duy nhất
+activate db
+db --> api : Payment đã lưu trước khi tương tác với cổng
+deactivate db
+alt Thanh toán bằng ví điện tử
+api -> gateway : Tạo giao dịch ví / QR có chữ ký; số tiền do server tính
+activate gateway
+gateway --> api : paymentUrl / QR hoặc lỗi tạo giao dịch
+deactivate gateway
+else Thanh toán bằng thẻ ngân hàng
+api -> api : Tạo URL thanh toán thẻ có chữ ký và mã tham chiếu
+end
+api -> db : Lưu URL / dữ liệu QR hoặc trạng thái tạo giao dịch
+activate db
+db --> api : Đã lưu kết quả
+deactivate db
+api --> ui : paymentId, URL / QR hoặc thông báo chưa tạo được giao dịch
+end
+deactivate api
+ui --> customer : Mở cổng thẻ / hiện QR, hoặc thông báo lỗi
+deactivate ui
+end
+customer -> gateway : Xác thực thanh toán bằng ví / thẻ; hoặc hủy thao tác
+activate gateway
+gateway --> customer : Kết quả thao tác tại cổng / chuyển hướng về BrewLite
+deactivate gateway
+
+== 5. Xác minh kết quả, cập nhật đơn và tồn kho ==
+loop Xử lý kết quả qua callback / Return hoặc truy vấn; có thể nhận trùng
+alt Cổng gửi thông báo server-to-server
+gateway ->> api : Callback / IPN có chữ ký, mã giao dịch, số tiền và trạng thái
+else Trình duyệt quay về
+gateway ->> ui : Return / redirect chứa dữ liệu kết quả
+ui -> api : POST /api/payments/{provider}/result\nChuyển nguyên dữ liệu đã ký; không tự kết luận thành công
+else Khách mất mạng / không có kết quả; kiểm tra lại
+ui -> api : POST /api/payments/orders/:id/reconcile + JWT
+end
+activate api
+api -> api : Xác minh chữ ký / MAC theo kênh\nĐối chiếu tham chiếu, đơn, số tiền; không tin trạng thái từ client
+alt Chữ ký sai / thông tin không khớp
+api -> api : Từ chối cập nhật; trả lỗi theo kênh gửi
+else Thông báo hợp lệ hoặc yêu cầu đối soát được xác thực
+opt Return ví / mất kết nối / chưa rõ kết quả cần hỏi cổng
+api -> gateway : Truy vấn trạng thái bằng yêu cầu có chữ ký
+activate gateway
+gateway --> api : SUCCESS / FAILED / PENDING hoặc chưa liên lạc được
+deactivate gateway
+end
+api -> db : Khóa payment / order; đọc trạng thái hiện tại
+activate db
+db --> api : Kết quả đã xử lý hay chưa; trạng thái giữ kho
+deactivate db
+alt Kết quả đã xử lý trước đó
+api -> api : Trả trạng thái hiện có; không trừ kho / cộng điểm lần nữa
+else Thanh toán THÀNH CÔNG, đơn còn đủ điều kiện hoàn tất
+group Transaction B - Xác nhận thanh toán và quyết toán nguyên liệu
+api -> db : BEGIN; Payment=SUCCESS; Order=PAID; ghi paidAt\nTrừ onHand và reserved theo snapshot; ghi ledger điểm / khuyến mãi
+activate db
+db --> api : Các cập nhật hợp lệ
+api -> db : COMMIT; nếu cập nhật lỗi thì ROLLBACK toàn bộ và đối soát lại
+db --> api : Kết quả commit; chỉ báo PAID khi commit thành công
+deactivate db
+end
+else Cổng xác nhận THẤT BẠI / khách HỦY giao dịch
+group Transaction C - Theo đặc tả Task 1.3: giải phóng giữ chỗ
+api -> db : BEGIN; Payment=FAILED; Order=PAYMENT_FAILED\nGiải phóng reserved / quyền lợi đã giữ, đúng một lần; COMMIT
+activate db
+db --> api : Đơn chưa hoàn tất; nguyên liệu được giải phóng
+deactivate db
+end
+else PENDING / mất mạng / không biết tiền đã bị trừ hay chưa
+api -> db : Giữ trạng thái chờ xác nhận; lưu dữ liệu để đối soát
+activate db
+db --> api : Không tự chuyển PAID / FAILED và không giải phóng kho mù
+deactivate db
+note over api, gateway
+Lỗi mạng không phải bằng chứng thanh toán thất bại.
+Chờ callback hoặc truy vấn lại; thành công đến muộn khi kho đã giải phóng
+phải đưa vào xử lý đối soát, không tự trừ kho lần nữa.
+end note
+end
+end
+opt Nguồn kết quả là callback / IPN
+api -->> gateway : ACK theo giao thức cổng; callback trùng vẫn phản hồi an toàn
+end
+opt Nguồn kết quả là Return / yêu cầu kiểm tra của UI
+api --> ui : Trạng thái đã xác minh / đang chờ / lỗi xác minh
+end
+deactivate api
+end
+
+== 6. Thông báo cuối cùng, đổi phương thức và lịch sử ==
+ui -> api : GET /api/orders/:id + JWT
+activate api
+api -> api : Kiểm tra JWT và chủ sở hữu đơn
+api -> db : Đọc hóa đơn, món, payment và trạng thái đã lưu
+activate db
+db --> api : Dữ liệu đơn thuộc khách hiện tại
+deactivate db
+api --> ui : 200 - Hóa đơn và trạng thái / 401 hoặc 403
+deactivate api
+activate ui
+alt PAID
+ui --> customer : Thanh toán thành công; hiển thị hóa đơn\nĐơn có trong lịch sử, kho đã trừ và điểm đã cộng
+else PAYMENT_FAILED
+ui --> customer : Thanh toán thất bại / đã hủy; hiển thị lý do\nCho chọn phương thức khác hoặc hủy đơn
+opt Khách muốn thử lại và đơn còn đủ điều kiện
+customer -> ui : Chọn phương thức khác
+ui -> api : POST /api/payments/orders/:id/retry + JWT
+activate api
+api -> db : Transaction: kiểm tra lại giá / kho; giữ lại nguyên liệu nếu đủ\nKhông khôi phục đơn thanh toán nếu không còn khả dụng
+activate db
+db --> api : Cho phép thử lại hoặc lỗi hết hàng / hết hạn
+deactivate db
+api --> ui : Trở về chọn phương thức; giao dịch mới dùng khóa mới
+deactivate api
+end
+opt Khách chọn hủy đơn chưa thanh toán
+customer -> ui : Hủy đơn
+ui -> api : POST /api/payments/orders/:id/cancel + JWT
+activate api
+api -> db : Xác minh chủ đơn và kết quả tiền; hủy / giải phóng phần giữ còn lại một lần
+activate db
+db --> api : Trạng thái hủy hoặc cần chờ đối soát
+deactivate db
+api --> ui : Kết quả hủy đơn
+deactivate api
+end
+else Chưa có kết quả cuối cùng
+ui --> customer : Đang chờ xác nhận; cho kiểm tra lại\nKhông hiển thị thành công giả, không yêu cầu trả thêm khi chưa rõ
+end
+deactivate ui
+end
+
+opt Khách mở lịch sử mua hàng
+customer -> ui : Xem lịch sử / chi tiết đơn
+activate ui
+ui -> api : GET /api/orders hoặc /api/orders/:id + JWT
+activate api
+api -> api : Kiểm tra JWT và quyền truy cập
+api -> db : Đọc đơn theo userId xác thực
+activate db
+db --> api : Danh sách / chi tiết đơn
+deactivate db
+api --> ui : Dữ liệu đơn và trạng thái hiện tại
+deactivate api
+ui --> customer : Hiển thị lịch sử / chi tiết mua hàng
+deactivate ui
+end
+legend bottom left
+Thanh màu xanh trên lifeline: khoảng thực thi (Activation Bar).
+Mũi tên liền: yêu cầu; nét đứt: phản hồi; >>: thông điệp bất đồng bộ.
+Sơ đồ đặc tả yêu cầu, không khẳng định mọi nhánh đã được hiện thực.
+endlegend
+footer BrewLite - Assignment 2 / Task 2.2 - Đối chiếu Task 1.3 - 14/11/2026
+@enduml
