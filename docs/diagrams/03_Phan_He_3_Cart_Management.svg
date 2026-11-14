@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 760" width="1140" height="760">
+  <defs>
+    <style type="text/css"><![CDATA[
+  .uml-box { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+  .uml-divider { stroke: #000000; stroke-width: 1.5; }
+  .stereotype { font-size: 11px; font-style: italic; fill: #333333; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .class-title { font-size: 14px; font-weight: 700; fill: #000000; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .member-text { font-size: 12px; fill: #000000; font-family: 'Consolas', 'Courier New', monospace; font-weight: 500; }
+  .conn-line { stroke: #000000; stroke-width: 1.4; fill: none; stroke-linejoin: miter; }
+  .conn-dashed { stroke: #000000; stroke-width: 1.4; fill: none; stroke-dasharray: 6, 4; stroke-linejoin: miter; }
+  .multiplicity { font-size: 11px; font-weight: 600; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; }
+  .label-bg { fill: #ffffff; }
+  .rel-label { font-size: 11px; font-weight: 500; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; text-anchor: middle; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1.5 L 8 5 L 0 8.5" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1140" height="760" fill="#ffffff" />
+
+  <!-- RELATIONSHIPS -->
+  <path d="M 400 150 L 480 150" class="conn-line" />
+  <rect x="406.0" y="155.0" width="68.0" height="18" class="label-bg" />
+  <text x="440.0" y="168.0" class="rel-label">toppings</text>
+  <text x="410" y="140" class="multiplicity">1</text>
+  <text x="452" y="140" class="multiplicity">0..*</text>
+  <path d="M 240.0 440 L 240.0 334" class="conn-dashed" marker-end="url(#arrow)" />
+  <rect x="236.0" y="374.0" width="120.0" height="18" class="label-bg" />
+  <text x="296.0" y="387.0" class="rel-label">quản lý CartItem</text>
+  <path d="M 650 440 L 650 310 L 400 310" class="conn-dashed" marker-end="url(#arrow)" />
+  <rect x="469.8" y="283.0" width="100.5" height="18" class="label-bg" />
+  <text x="520.0" y="296.0" class="rel-label">uses CartItem</text>
+  <path d="M 590 560 L 520 560" class="conn-dashed" marker-end="url(#arrow)" />
+  <rect x="525.0" y="533.0" width="60.0" height="18" class="label-bg" />
+  <text x="555.0" y="546.0" class="rel-label">uses</text>
+  <path d="M 965.0 440 L 965.0 243" class="conn-dashed" marker-end="url(#arrow)" />
+  <rect x="956.5" y="328.5" width="185.0" height="18" class="label-bg" />
+  <text x="1049.0" y="341.5" class="rel-label">tra cứu / ghi nhận đồng bộ</text>
+
+  <!-- UML CLASSES -->
+  <g id="class-CartItem">
+    <rect x="40" y="40" width="360" height="294" class="uml-box" rx="2" />
+    <line x1="40" y1="74" x2="400" y2="74" class="uml-divider" />
+    <line x1="40" y1="310" x2="400" y2="310" class="uml-divider" />
+    <text x="220.0" y="62" class="class-title">CartItem</text>
+    <text x="54" y="96" class="member-text">+ id: UUID (PK)</text>
+    <text x="54" y="114" class="member-text">+ userId: UUID (FK)</text>
+    <text x="54" y="132" class="member-text">+ rewardRedemptionId: UUID? (FK, unique)</text>
+    <text x="54" y="150" class="member-text">+ productId: UUID (FK)</text>
+    <text x="54" y="168" class="member-text">+ productSizeId: UUID (FK)</text>
+    <text x="54" y="186" class="member-text">+ sweetnessLevel: DrinkLevel = HUNDRED</text>
+    <text x="54" y="204" class="member-text">+ iceLevel: DrinkLevel = HUNDRED</text>
+    <text x="54" y="222" class="member-text">+ quantity: Int</text>
+    <text x="54" y="240" class="member-text">+ note: String?</text>
+    <text x="54" y="258" class="member-text">+ isSelected: Boolean = true</text>
+    <text x="54" y="276" class="member-text">+ createdAt: DateTime</text>
+    <text x="54" y="294" class="member-text">+ updatedAt: DateTime</text>
+  </g>
+  <g id="class-CartItemTopping">
+    <rect x="480" y="95" width="260" height="114" class="uml-box" rx="2" />
+    <line x1="480" y1="129" x2="740" y2="129" class="uml-divider" />
+    <line x1="480" y1="185" x2="740" y2="185" class="uml-divider" />
+    <text x="610.0" y="117" class="class-title">CartItemTopping</text>
+    <text x="494" y="151" class="member-text">+ cartItemId: UUID (PK, FK)</text>
+    <text x="494" y="169" class="member-text">+ toppingId: UUID (PK, FK)</text>
+  </g>
+  <g id="class-CartSync">
+    <rect x="830" y="75" width="270" height="168" class="uml-box" rx="2" />
+    <line x1="830" y1="109" x2="1100" y2="109" class="uml-divider" />
+    <line x1="830" y1="219" x2="1100" y2="219" class="uml-divider" />
+    <text x="965.0" y="97" class="class-title">CartSync</text>
+    <text x="844" y="131" class="member-text">+ userId: UUID (PK, FK)</text>
+    <text x="844" y="149" class="member-text">+ syncId: UUID (PK)</text>
+    <text x="844" y="167" class="member-text">+ payloadHash: String</text>
+    <text x="844" y="185" class="member-text">+ warnings: Json</text>
+    <text x="844" y="203" class="member-text">+ createdAt: DateTime</text>
+  </g>
+  <g id="class-CartsService">
+    <rect x="40" y="440" width="480" height="218" class="uml-box" rx="2" />
+    <line x1="40" y1="474" x2="520" y2="474" class="uml-divider" />
+    <line x1="40" y1="512" x2="520" y2="512" class="uml-divider" />
+    <text x="280.0" y="462" class="class-title">CartsService</text>
+    <text x="54" y="496" class="member-text">- prisma: PrismaService</text>
+    <text x="54" y="534" class="member-text">+ getCart(userId, database)</text>
+    <text x="54" y="552" class="member-text">+ addToCart(userId, dto)</text>
+    <text x="54" y="570" class="member-text">+ updateQuantity(userId, itemId, quantity, note, isSelected)</text>
+    <text x="54" y="588" class="member-text">+ removeItem(userId, itemId)</text>
+    <text x="54" y="606" class="member-text">+ syncCart(userId, localItems)</text>
+    <text x="54" y="624" class="member-text">- validate(dto)</text>
+    <text x="54" y="642" class="member-text">- add(tx, userId, dto)</text>
+  </g>
+  <g id="class-RewardsCartService">
+    <rect x="590" y="440" width="490" height="254" class="uml-box" rx="2" />
+    <line x1="590" y1="474" x2="1080" y2="474" class="uml-divider" />
+    <line x1="590" y1="566" x2="1080" y2="566" class="uml-divider" />
+    <text x="835.0" y="462" class="class-title">RewardsCartService</text>
+    <text x="604" y="496" class="member-text">- prisma: PrismaService</text>
+    <text x="604" y="514" class="member-text">- carts: CartsService</text>
+    <text x="604" y="532" class="member-text">- promotions: PromotionsService</text>
+    <text x="604" y="550" class="member-text">- inventory: InventoryService</text>
+    <text x="604" y="588" class="member-text">+ getCart(userId, tx)</text>
+    <text x="604" y="606" class="member-text">+ quote(userId, body)</text>
+    <text x="604" y="624" class="member-text">+ addToCart(userId, body)</text>
+    <text x="604" y="642" class="member-text">+ updateQuantity(userId, itemId, quantity, note, isSelected)</text>
+    <text x="604" y="660" class="member-text">+ removeItem(userId, itemId)</text>
+    <text x="604" y="678" class="member-text">+ syncCart(userId, body)</text>
+  </g>
+</svg>

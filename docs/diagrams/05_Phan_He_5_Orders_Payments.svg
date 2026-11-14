@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 980" width="1120" height="980">
+  <defs>
+    <style type="text/css"><![CDATA[
+  .uml-box { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+  .uml-divider { stroke: #000000; stroke-width: 1.5; }
+  .stereotype { font-size: 11px; font-style: italic; fill: #333333; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .class-title { font-size: 14px; font-weight: 700; fill: #000000; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .member-text { font-size: 12px; fill: #000000; font-family: 'Consolas', 'Courier New', monospace; font-weight: 500; }
+  .conn-line { stroke: #000000; stroke-width: 1.4; fill: none; stroke-linejoin: miter; }
+  .conn-dashed { stroke: #000000; stroke-width: 1.4; fill: none; stroke-dasharray: 6, 4; stroke-linejoin: miter; }
+  .multiplicity { font-size: 11px; font-weight: 600; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; }
+  .label-bg { fill: #ffffff; }
+  .rel-label { font-size: 11px; font-weight: 500; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; text-anchor: middle; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1.5 L 8 5 L 0 8.5" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1120" height="980" fill="#ffffff" />
+
+  <!-- RELATIONSHIPS -->
+  <path d="M 490 200 L 590 200" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="499.5" y="207.0" width="81.0" height="18" class="label-bg" />
+  <text x="540.0" y="220.0" class="rel-label">thanh toán</text>
+  <text x="502" y="190" class="multiplicity">1</text>
+  <text x="562" y="190" class="multiplicity">0..*</text>
+  <path d="M 265.0 492 L 265.0 560" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="170.0" y="513.0" width="94.0" height="18" class="label-bg" />
+  <text x="217.0" y="526.0" class="rel-label">chứa các món</text>
+  <text x="277.0" y="510" class="multiplicity">1</text>
+  <text x="277.0" y="550" class="multiplicity">1..*</text>
+  <path d="M 534 710 L 610 710" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="528.2" y="717.0" width="87.5" height="18" class="label-bg" />
+  <text x="572.0" y="730.0" class="rel-label">kèm topping</text>
+  <text x="546" y="700" class="multiplicity">1</text>
+  <text x="582" y="700" class="multiplicity">0..*</text>
+
+  <!-- UML CLASSES -->
+  <g id="class-Order">
+    <rect x="40" y="40" width="450" height="452" class="uml-box" rx="2" />
+    <line x1="40" y1="74" x2="490" y2="74" class="uml-divider" />
+    <line x1="40" y1="400" x2="490" y2="400" class="uml-divider" />
+    <text x="265.0" y="62" class="class-title">Order</text>
+    <text x="54" y="96" class="member-text">- id: UUID [PK]</text>
+    <text x="54" y="114" class="member-text">- orderCode: String(30) [UK]</text>
+    <text x="54" y="132" class="member-text">- userId: UUID [FK]</text>
+    <text x="54" y="150" class="member-text">- checkoutKey: UUID?</text>
+    <text x="54" y="168" class="member-text">- customerName: String(100)?</text>
+    <text x="54" y="186" class="member-text">- customerPhone: String(20)?</text>
+    <text x="54" y="204" class="member-text">- inventoryStatus: InventoryStatus</text>
+    <text x="54" y="222" class="member-text">- promotionId: UUID? [FK]</text>
+    <text x="54" y="240" class="member-text">- promotionCode: String(50)?</text>
+    <text x="54" y="258" class="member-text">- totalAmount: Decimal(12,0)</text>
+    <text x="54" y="276" class="member-text">- discountAmount: Decimal(12,0) = 0</text>
+    <text x="54" y="294" class="member-text">- finalAmount: Decimal(12,0)</text>
+    <text x="54" y="312" class="member-text">- status: OrderStatus = PENDING_PAYMENT</text>
+    <text x="54" y="330" class="member-text">- reservationExpiresAt: DateTime</text>
+    <text x="54" y="348" class="member-text">- note: String(255)?</text>
+    <text x="54" y="366" class="member-text">- createdAt: DateTime</text>
+    <text x="54" y="384" class="member-text">- updatedAt: DateTime</text>
+    <text x="54" y="422" class="member-text">+ create(userId: UUID, body: unknown): Order</text>
+    <text x="54" y="440" class="member-text">+ markPaid(tx: TransactionClient, id: UUID): void</text>
+    <text x="54" y="458" class="member-text">+ cancel(userId: UUID, id: UUID, expired: boolean): void</text>
+    <text x="54" y="476" class="member-text">+ owned(userId: UUID, id: UUID): Order</text>
+  </g>
+  <g id="class-Payment">
+    <rect x="590" y="40" width="470" height="362" class="uml-box" rx="2" />
+    <line x1="590" y1="74" x2="1060" y2="74" class="uml-divider" />
+    <line x1="590" y1="292" x2="1060" y2="292" class="uml-divider" />
+    <text x="825.0" y="62" class="class-title">Payment</text>
+    <text x="604" y="96" class="member-text">- id: UUID [PK]</text>
+    <text x="604" y="114" class="member-text">- orderId: UUID [FK]</text>
+    <text x="604" y="132" class="member-text">- idempotencyKey: String(255) [UK]</text>
+    <text x="604" y="150" class="member-text">- paymentMethod: PaymentMethod</text>
+    <text x="604" y="168" class="member-text">- transactionId: String(255)?</text>
+    <text x="604" y="186" class="member-text">- amount: Decimal(12,0)</text>
+    <text x="604" y="204" class="member-text">- status: PaymentStatus = PENDING</text>
+    <text x="604" y="222" class="member-text">- paymentUrl: String?</text>
+    <text x="604" y="240" class="member-text">- needsReview: boolean = false</text>
+    <text x="604" y="258" class="member-text">- createdAt: DateTime</text>
+    <text x="604" y="276" class="member-text">- updatedAt: DateTime</text>
+    <text x="604" y="314" class="member-text">+ create(userId: UUID, body: unknown, ip: String): Payment</text>
+    <text x="604" y="332" class="member-text">+ bankQr(userId: UUID, orderId: UUID): BankQrResponse</text>
+    <text x="604" y="350" class="member-text">+ retry(userId: UUID, orderId: UUID): Payment</text>
+    <text x="604" y="368" class="member-text">+ handleReturn(userId: UUID, body: unknown): ReturnResult</text>
+    <text x="604" y="386" class="member-text">+ expireOrders(): void</text>
+  </g>
+  <g id="class-OrderItem">
+    <rect x="40" y="560" width="494" height="380" class="uml-box" rx="2" />
+    <line x1="40" y1="594" x2="534" y2="594" class="uml-divider" />
+    <line x1="40" y1="884" x2="534" y2="884" class="uml-divider" />
+    <text x="287.0" y="582" class="class-title">OrderItem</text>
+    <text x="54" y="616" class="member-text">- id: UUID [PK]</text>
+    <text x="54" y="634" class="member-text">- orderId: UUID [FK]</text>
+    <text x="54" y="652" class="member-text">- productId: UUID [FK]</text>
+    <text x="54" y="670" class="member-text">- productName: String(100)</text>
+    <text x="54" y="688" class="member-text">- size: DrinkSize</text>
+    <text x="54" y="706" class="member-text">- sweetnessLevel: DrinkLevel</text>
+    <text x="54" y="724" class="member-text">- iceLevel: DrinkLevel</text>
+    <text x="54" y="742" class="member-text">- quantity: int</text>
+    <text x="54" y="760" class="member-text">- basePrice: Decimal(12,0)</text>
+    <text x="54" y="778" class="member-text">- sizePriceAdjustment: Decimal(12,0) = 0</text>
+    <text x="54" y="796" class="member-text">- unitPrice: Decimal(12,0)</text>
+    <text x="54" y="814" class="member-text">- toppingTotal: Decimal(12,0) = 0</text>
+    <text x="54" y="832" class="member-text">- totalPrice: Decimal(12,0)</text>
+    <text x="54" y="850" class="member-text">- rewardRedemptionId: UUID? [FK,UK]</text>
+    <text x="54" y="868" class="member-text">- note: String(255)?</text>
+    <text x="54" y="906" class="member-text">+ create(tx: TransactionClient, line: OrderItemDto): OrderItem</text>
+    <text x="54" y="924" class="member-text">+ calculatePrice(basePrice, sizeAdj, toppings): Decimal</text>
+  </g>
+  <g id="class-OrderItemTopping">
+    <rect x="610" y="620" width="487" height="182" class="uml-box" rx="2" />
+    <line x1="610" y1="654" x2="1097" y2="654" class="uml-divider" />
+    <line x1="610" y1="764" x2="1097" y2="764" class="uml-divider" />
+    <text x="853.5" y="642" class="class-title">OrderItemTopping</text>
+    <text x="624" y="676" class="member-text">- id: UUID [PK]</text>
+    <text x="624" y="694" class="member-text">- orderItemId: UUID [FK]</text>
+    <text x="624" y="712" class="member-text">- toppingId: UUID [FK]</text>
+    <text x="624" y="730" class="member-text">- toppingName: String(100)</text>
+    <text x="624" y="748" class="member-text">- toppingPrice: Decimal(12,0)</text>
+    <text x="624" y="786" class="member-text">+ create(tx: TransactionClient, orderItemId, toppingId): void</text>
+  </g>
+</svg>

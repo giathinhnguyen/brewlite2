@@ -1,0 +1,204 @@
+<svg viewBox="0 0 1060 840" width="1060" height="840" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="1060" height="840" fill="#ffffff" />
+  <defs>
+    <style type="text/css"><![CDATA[
+/* UML Box styling */
+  .uml-box {
+    fill: #ffffff;
+    stroke: #000000;
+    stroke-width: 1.5;
+  }
+  .uml-divider {
+    stroke: #000000;
+    stroke-width: 1.5;
+  }
+  /* Typography - Clean, Crisp Vector */
+  .subsystem {
+    font-size: 11px;
+    font-style: italic;
+    fill: #333333;
+    text-anchor: middle;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .class-title {
+    font-size: 14px;
+    font-weight: 700;
+    fill: #000000;
+    text-anchor: middle;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .attr-text {
+    font-size: 12px;
+    fill: #000000;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-weight: 500;
+  }
+  /* Relationship Connectors */
+  .conn-line {
+    stroke: #000000;
+    stroke-width: 1.4;
+    fill: none;
+    stroke-linejoin: miter;
+  }
+  .multiplicity {
+    font-size: 11px;
+    font-weight: 600;
+    fill: #000000;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .label-bg {
+    fill: #ffffff;
+  }
+  .rel-label {
+    font-size: 11px;
+    font-weight: 500;
+    fill: #000000;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    text-anchor: middle;
+  }
+
+    ]]></style>
+    <!-- Sharp clean UML open arrowhead -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1.5 L 8 5 L 0 8.5" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- ==================== RELATIONSHIP LINES (DRAWN BEHIND BOXES) ==================== -->
+
+  <!-- 1. CatalogAndInventory -> OrderAndPayment -->
+  <path d="M 155 225 L 155 600 L 515 600 L 515 645" class="conn-line" marker-end="url(#arrow)" />
+  <text x="162" y="242" class="multiplicity">1</text>
+  <text x="507" y="636" class="multiplicity">0..*</text>
+  <rect x="35" y="505" width="145" height="20" class="label-bg" />
+  <text x="107" y="519" class="rel-label">snapshot món &amp; trừ kho</text>
+
+  <!-- 2. CatalogAndInventory -> LoyaltyAndReward -->
+  <path d="M 195 225 L 195 270 L 285 270 L 285 435" class="conn-line" marker-end="url(#arrow)" />
+  <text x="202" y="242" class="multiplicity">1</text>
+  <text x="276" y="426" class="multiplicity">0..1</text>
+  <rect x="170" y="338" width="130" height="20" class="label-bg" />
+  <text x="235" y="352" class="rel-label">quy định món đổi quà</text>
+
+  <!-- 3. CatalogAndInventory -> CartManagement -->
+  <path d="M 235 225 L 235 255 L 535 255 L 535 435" class="conn-line" marker-end="url(#arrow)" />
+  <text x="242" y="242" class="multiplicity">1</text>
+  <text x="525" y="426" class="multiplicity">0..*</text>
+  <rect x="410" y="338" width="135" height="20" class="label-bg" />
+  <text x="477" y="352" class="rel-label">cung cấp sản phẩm &amp; giá</text>
+
+  <!-- 4. UserManagement -> LoyaltyAndReward -->
+  <path d="M 405 275 L 405 320 L 335 320 L 335 435" class="conn-line" marker-end="url(#arrow)" />
+  <text x="412" y="292" class="multiplicity">1</text>
+  <text x="325" y="426" class="multiplicity">0..*</text>
+  <rect x="295" y="338" width="125" height="20" class="label-bg" />
+  <text x="357" y="352" class="rel-label">tích lũy &amp; đổi thưởng</text>
+
+  <!-- 5. UserManagement -> CartManagement -->
+  <path d="M 455 275 L 455 295 L 585 295 L 585 435" class="conn-line" marker-end="url(#arrow)" />
+  <text x="462" y="292" class="multiplicity">1</text>
+  <text x="576" y="426" class="multiplicity">0..*</text>
+  <rect x="545" y="338" width="105" height="20" class="label-bg" />
+  <text x="597" y="352" class="rel-label">sở hữu giỏ hàng</text>
+
+  <!-- 6. UserManagement -> OrderAndPayment (long right loop) -->
+  <path d="M 505 275 L 505 290 L 765 290 L 765 600 L 635 600 L 635 645" class="conn-line" marker-end="url(#arrow)" />
+  <text x="512" y="292" class="multiplicity">1</text>
+  <text x="626" y="636" class="multiplicity">0..*</text>
+  <rect x="665" y="505" width="125" height="20" class="label-bg" />
+  <text x="727" y="519" class="rel-label">đặt đơn &amp; thanh toán</text>
+
+  <!-- 7. LoyaltyAndReward -> OrderAndPayment -->
+  <path d="M 310 585 L 310 615 L 545 615 L 545 645" class="conn-line" marker-end="url(#arrow)" />
+  <text x="317" y="602" class="multiplicity">0..1</text>
+  <text x="536" y="636" class="multiplicity">0..*</text>
+  <rect x="175" y="665" width="160" height="20" class="label-bg" />
+  <text x="255" y="679" class="rel-label">tích điểm / áp dụng quà tặng</text>
+
+  <!-- 8. CartManagement -> OrderAndPayment -->
+  <path d="M 575 585 L 575 645" class="conn-line" marker-end="url(#arrow)" />
+  <text x="582" y="602" class="multiplicity">0..1</text>
+  <text x="566" y="636" class="multiplicity">1</text>
+  <rect x="425" y="665" width="145" height="20" class="label-bg" />
+  <text x="497" y="679" class="rel-label">chuyển đổi thành đơn hàng</text>
+
+  <!-- 9. PromotionManagement -> OrderAndPayment -->
+  <path d="M 885 585 L 885 615 L 605 615 L 605 645" class="conn-line" marker-end="url(#arrow)" />
+  <text x="892" y="602" class="multiplicity">0..1</text>
+  <text x="595" y="636" class="multiplicity">0..*</text>
+  <rect x="775" y="665" width="135" height="20" class="label-bg" />
+  <text x="842" y="679" class="rel-label">áp dụng mã giảm giá</text>
+
+
+  <!-- ==================== 6 UML SUBSYSTEM CLASSES ==================== -->
+
+  <!-- 1. CatalogAndInventory -->
+  <g id="box-CatalogAndInventory">
+    <rect x="110" y="35" width="170" height="190" class="uml-box" rx="2" />
+    <path d="M 110 83 L 280 83" class="uml-divider" />
+    <text x="195" y="56" class="subsystem">&lt;&lt;Subsystem&gt;&gt;</text>
+    <text x="195" y="74" class="class-title">CatalogAndInventory</text>
+    <text x="122" y="104" class="attr-text">+ Category</text>
+    <text x="122" y="123" class="attr-text">+ Product</text>
+    <text x="122" y="142" class="attr-text">+ ProductSize</text>
+    <text x="122" y="161" class="attr-text">+ Ingredient</text>
+    <text x="122" y="180" class="attr-text">+ IngredientStock</text>
+    <text x="122" y="199" class="attr-text">+ Topping</text>
+  </g>
+
+  <!-- 2. UserManagement -->
+  <g id="box-UserManagement">
+    <rect x="355" y="115" width="190" height="160" class="uml-box" rx="2" />
+    <path d="M 355 163 L 545 163" class="uml-divider" />
+    <text x="450" y="136" class="subsystem">&lt;&lt;Subsystem&gt;&gt;</text>
+    <text x="450" y="154" class="class-title">UserManagement</text>
+    <text x="367" y="186" class="attr-text">+ User</text>
+    <text x="367" y="208" class="attr-text">+ EmailRegistration</text>
+    <text x="367" y="230" class="attr-text">+ PasswordSetupChallenge</text>
+  </g>
+
+  <!-- 3. LoyaltyAndReward -->
+  <g id="box-LoyaltyAndReward">
+    <rect x="225" y="435" width="170" height="150" class="uml-box" rx="2" />
+    <path d="M 225 483 L 395 483" class="uml-divider" />
+    <text x="310" y="456" class="subsystem">&lt;&lt;Subsystem&gt;&gt;</text>
+    <text x="310" y="474" class="class-title">LoyaltyAndReward</text>
+    <text x="237" y="507" class="attr-text">+ RewardProduct</text>
+    <text x="237" y="529" class="attr-text">+ RewardRedemption</text>
+    <text x="237" y="551" class="attr-text">+ LoyaltyTransaction</text>
+  </g>
+
+  <!-- 4. CartManagement -->
+  <g id="box-CartManagement">
+    <rect x="495" y="435" width="160" height="150" class="uml-box" rx="2" />
+    <path d="M 495 483 L 655 483" class="uml-divider" />
+    <text x="575" y="456" class="subsystem">&lt;&lt;Subsystem&gt;&gt;</text>
+    <text x="575" y="474" class="class-title">CartManagement</text>
+    <text x="507" y="507" class="attr-text">+ CartItem</text>
+    <text x="507" y="529" class="attr-text">+ CartItemTopping</text>
+    <text x="507" y="551" class="attr-text">+ CartSync</text>
+  </g>
+
+  <!-- 5. PromotionManagement -->
+  <g id="box-PromotionManagement">
+    <rect x="800" y="455" width="175" height="130" class="uml-box" rx="2" />
+    <path d="M 800 503 L 975 503" class="uml-divider" />
+    <text x="887" y="476" class="subsystem">&lt;&lt;Subsystem&gt;&gt;</text>
+    <text x="887" y="494" class="class-title">PromotionManagement</text>
+    <text x="812" y="528" class="attr-text">+ Promotion</text>
+    <text x="812" y="550" class="attr-text">+ PromotionProduct</text>
+  </g>
+
+  <!-- 6. OrderAndPayment -->
+  <g id="box-OrderAndPayment">
+    <rect x="490" y="650" width="170" height="165" class="uml-box" rx="2" />
+    <path d="M 490 698 L 660 698" class="uml-divider" />
+    <text x="575" y="671" class="subsystem">&lt;&lt;Subsystem&gt;&gt;</text>
+    <text x="575" y="689" class="class-title">OrderAndPayment</text>
+    <text x="502" y="721" class="attr-text">+ Order</text>
+    <text x="502" y="740" class="attr-text">+ OrderItem</text>
+    <text x="502" y="759" class="attr-text">+ OrderItemTopping</text>
+    <text x="502" y="778" class="attr-text">+ Payment</text>
+  </g>
+
+</svg>

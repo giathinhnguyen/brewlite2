@@ -1,0 +1,39 @@
+@startuml Phan_He_4_Promotions
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam monochrome true
+
+class Promotion {
+  - id: UUID [PK]
+  - code: String(50) [UK]
+  - title: String(100)?
+  - description: String?
+  - displayOrder: int = 0
+  - appliesToAllProducts: boolean = true
+  - discountType: DiscountType
+  - discountValue: Decimal(12,0)
+  - maxDiscountAmount: Decimal(12,0)?
+  - minOrderAmount: Decimal(12,0) = 0
+  - isActive: boolean = true
+  - startDate: DateTime?
+  - endDate: DateTime?
+  - createdAt: DateTime
+  - updatedAt: DateTime
+  --
+  + findAll(): Promotion[]
+  + quote(body: QuotePromotionDto): QuoteResult
+  + calculateQuote(tx: TransactionClient, body): QuoteResult
+  + activeWhere(now: Date): WhereInput
+}
+
+class PromotionProduct {
+  - promotionId: UUID [PK,FK]
+  - productId: UUID [PK,FK]
+  --
+  + save(promotionId: UUID, body): void
+  + findMany(promotionId: UUID): PromotionProduct[]
+}
+
+Promotion "1" --> "0..*" PromotionProduct : áp dụng cho
+@enduml

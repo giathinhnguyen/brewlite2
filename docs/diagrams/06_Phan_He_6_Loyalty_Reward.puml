@@ -1,0 +1,45 @@
+@startuml Phan_He_6_Loyalty_Reward
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam monochrome true
+
+class RewardProduct {
+  + id: UUID (PK)
+  + productSizeId: UUID (FK, unique)
+  + pointsRequired: Int
+  + isActive: Boolean = true
+  + createdAt: DateTime
+  + updatedAt: DateTime
+}
+
+class RewardRedemption {
+  + id: UUID (PK)
+  + userId: UUID (FK)
+  + idempotencyKey: UUID?
+  + rewardProductId: UUID (FK)
+  + orderId: UUID? (FK)
+  + productNameSnapshot: String
+  + sizeSnapshot: DrinkSize
+  + pointsRequiredSnapshot: Int
+  + quantity: Int = 1
+  + totalPointsSpent: Int
+  + status: RewardRedemptionStatus = PENDING
+  + createdAt: DateTime
+  + updatedAt: DateTime
+}
+
+class LoyaltyTransaction {
+  + id: UUID (PK)
+  + userId: UUID (FK)
+  + orderId: UUID? (FK)
+  + rewardRedemptionId: UUID? (FK)
+  + pointsChange: Int
+  + type: LoyaltyTransactionType
+  + description: String?
+  + createdAt: DateTime
+}
+
+RewardProduct "1" -- "0..*" RewardRedemption : lượt đổi
+RewardRedemption "0..1" -- "0..*" LoyaltyTransaction : giao dịch điểm
+@enduml

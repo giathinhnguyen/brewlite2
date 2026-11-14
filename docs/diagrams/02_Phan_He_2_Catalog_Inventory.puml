@@ -1,0 +1,101 @@
+@startuml Phan_He_2_Catalog_Inventory
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam monochrome true
+
+class Category {
+  - id: UUID [PK]
+  - name: String [UK]
+  - slug: String [UK]
+  - displayOrder: int
+  - isActive: boolean
+  --
+  + findAll(): Category[]
+}
+
+class CustomizationPolicy {
+  - productSizeId: UUID [PK,FK]
+  - axis: CustomizationAxis [PK]
+  - allowedLevels: int[]
+  - defaultLevel: int = 100
+  - policyNote: String?
+  --
+  + findPolicies(sizeId: UUID): Policy[]
+}
+
+class Product {
+  - id: UUID [PK]
+  - categoryId: UUID [FK]
+  - name: String
+  - description: String?
+  - basePrice: Decimal
+  - imageUrl: String?
+  - isActive: boolean
+  --
+  + findAll(): Product[]
+  + findOne(id: UUID): Product
+  + product(id: UUID, body): Product
+}
+
+class ProductSize {
+  - id: UUID [PK]
+  - productId: UUID [FK]
+  - size: DrinkSize
+  - priceAdjustment: Decimal
+  - cupVolumeMl: int?
+  - isActive: boolean
+  --
+  + availability(tx, sizeIds): SizeAvail[]
+}
+
+class ProductIngredient {
+  - productSizeId: UUID [PK,FK]
+  - ingredientId: UUID [PK,FK]
+  - quantity: Decimal(14,3)
+  - adjustmentGroup: IngredientAdjustment
+  --
+  + recipe(sizeId: UUID, body): void
+  + requirements(tx, lines): Requirement[]
+}
+
+class Ingredient {
+  - id: UUID [PK]
+  - code: String(10) [UK]
+  - name: String(120)
+  - unit: String(5)
+  - unitCostVnd: Decimal(14,4)
+  - reorderLevel: Decimal(14,3)
+  - isActive: boolean
+  --
+  + ingredient(id: UUID, body): Ingredient
+  + overview(): IngredientOverview[]
+}
+
+class Topping {
+  - id: UUID [PK]
+  - name: String [UK]
+  - price: Decimal
+  - isActive: boolean
+  --
+  + findAll(): Topping[]
+}
+
+class IngredientStock {
+  - ingredientId: UUID [PK,FK]
+  - onHand: Decimal(14,3)
+  - reserved: Decimal(14,3)
+  - updatedAt: DateTime
+  --
+  + assertAvailable(tx, lines): void
+  + reserve(tx, orderId: UUID, lines): void
+  + settle(tx, orderId: UUID, action): void
+}
+
+Category "1" --> "0..*" Product : phân loại
+Product "1" --> "1..*" ProductSize : có size
+ProductSize "1" --> "0..*" CustomizationPolicy : chính sách
+ProductSize "1" --> "0..*" ProductIngredient : định lượng
+Ingredient "1" --> "0..*" ProductIngredient : công thức
+Ingredient "1" --> "0..1" IngredientStock : số dư tồn
+@enduml

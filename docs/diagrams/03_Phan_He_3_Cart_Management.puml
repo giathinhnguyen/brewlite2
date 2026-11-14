@@ -1,0 +1,66 @@
+@startuml Phan_He_3_Cart_Management
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam monochrome true
+
+class CartItem {
+  + id: UUID (PK)
+  + userId: UUID (FK)
+  + rewardRedemptionId: UUID? (FK, unique)
+  + productId: UUID (FK)
+  + productSizeId: UUID (FK)
+  + sweetnessLevel: DrinkLevel = HUNDRED
+  + iceLevel: DrinkLevel = HUNDRED
+  + quantity: Int
+  + note: String?
+  + isSelected: Boolean = true
+  + createdAt: DateTime
+  + updatedAt: DateTime
+}
+
+class CartItemTopping {
+  + cartItemId: UUID (PK, FK)
+  + toppingId: UUID (PK, FK)
+}
+
+class CartSync {
+  + userId: UUID (PK, FK)
+  + syncId: UUID (PK)
+  + payloadHash: String
+  + warnings: Json
+  + createdAt: DateTime
+}
+
+class CartsService {
+  - prisma: PrismaService
+  --
+  + getCart(userId, database)
+  + addToCart(userId, dto)
+  + updateQuantity(userId, itemId, quantity, note, isSelected)
+  + removeItem(userId, itemId)
+  + syncCart(userId, localItems)
+  - validate(dto)
+  - add(tx, userId, dto)
+}
+
+class RewardsCartService {
+  - prisma: PrismaService
+  - carts: CartsService
+  - promotions: PromotionsService
+  - inventory: InventoryService
+  --
+  + getCart(userId, tx)
+  + quote(userId, body)
+  + addToCart(userId, body)
+  + updateQuantity(userId, itemId, quantity, note, isSelected)
+  + removeItem(userId, itemId)
+  + syncCart(userId, body)
+}
+
+CartItem "1" -- "0..*" CartItemTopping : toppings
+CartsService ..> CartItem : quản lý CartItem
+RewardsCartService ..> CartItem : uses CartItem
+RewardsCartService ..> CartsService : uses
+RewardsCartService ..> CartSync : tra cứu / ghi nhận đồng bộ
+@enduml

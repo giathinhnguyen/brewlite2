@@ -1,0 +1,57 @@
+@startuml BrewLite_Subsystems
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam monochrome true
+
+class CatalogAndInventory <<Subsystem>> {
+  + Category
+  + Product
+  + ProductSize
+  + Ingredient
+  + IngredientStock
+  + Topping
+}
+
+class UserManagement <<Subsystem>> {
+  + User
+  + EmailRegistration
+  + PasswordSetupChallenge
+}
+
+class LoyaltyAndReward <<Subsystem>> {
+  + RewardProduct
+  + RewardRedemption
+  + LoyaltyTransaction
+}
+
+class CartManagement <<Subsystem>> {
+  + CartItem
+  + CartItemTopping
+  + CartSync
+}
+
+class PromotionManagement <<Subsystem>> {
+  + Promotion
+  + PromotionProduct
+}
+
+class OrderAndPayment <<Subsystem>> {
+  + Order
+  + OrderItem
+  + OrderItemTopping
+  + Payment
+}
+
+CatalogAndInventory "1" --> "0..*" OrderAndPayment : snapshot món & trừ kho
+CatalogAndInventory "1" --> "0..1" LoyaltyAndReward : quy định món đổi quà
+CatalogAndInventory "1" --> "0..*" CartManagement : cung cấp sản phẩm & giá
+
+UserManagement "1" --> "0..*" LoyaltyAndReward : tích lũy & đổi thưởng
+UserManagement "1" --> "0..*" CartManagement : sở hữu giỏ hàng
+UserManagement "1" --> "0..*" OrderAndPayment : đặt đơn & thanh toán
+
+LoyaltyAndReward "0..1" --> "0..*" OrderAndPayment : tích điểm / áp dụng quà tặng
+CartManagement "0..1" --> "1" OrderAndPayment : chuyển đổi thành đơn hàng
+PromotionManagement "0..1" --> "0..*" OrderAndPayment : áp dụng mã giảm giá
+@enduml

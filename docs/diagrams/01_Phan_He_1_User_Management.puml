@@ -1,0 +1,54 @@
+@startuml Phan_He_1_User_Management
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam monochrome true
+
+class EmailRegistration <<class>> {
+  + id: UUID (PK)
+  + email: String (unique)
+  + fullName: String
+  + passwordHash: String
+  + codeHash: String
+  + attempts: Int = 0
+  + expiresAt: DateTime
+  + sentAt: DateTime
+  --
+  + start(): EmailRegistration
+  + resend(): EmailRegistration
+  + verify(code: String): User
+}
+
+class User <<class>> {
+  + id: UUID (PK)
+  + email: String (unique)
+  + passwordHash: String?
+  + fullName: String
+  + googleId: String? (unique)
+  + role: UserRole = CUSTOMER
+  + loyaltyPoints: Int = 0
+  + reservedPoints: Int = 0
+  + createdAt: DateTime
+  + updatedAt: DateTime
+  --
+  + login(email, password): AuthSession
+  + googleLogin(credential): AuthSession
+  + getCurrentUser(): UserProfile
+}
+
+class PasswordSetupChallenge <<class>> {
+  + id: UUID (PK)
+  + userId: UUID (FK, unique)
+  + codeHash: String
+  + attempts: Int = 0
+  + expiresAt: DateTime
+  + sentAt: DateTime
+  --
+  + requestCode(): void
+  + verifyCode(code: String): Boolean
+  + setPassword(password): void
+}
+
+EmailRegistration ..> User : xác minh thành công → tạo User
+User "1" -- "0..1" PasswordSetupChallenge : có thử thách đặt mật khẩu
+@enduml

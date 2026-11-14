@@ -1,0 +1,86 @@
+@startuml Phan_He_5_Orders_Payments
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+skinparam monochrome true
+
+class Order {
+  - id: UUID [PK]
+  - orderCode: String(30) [UK]
+  - userId: UUID [FK]
+  - checkoutKey: UUID?
+  - customerName: String(100)?
+  - customerPhone: String(20)?
+  - inventoryStatus: InventoryStatus
+  - promotionId: UUID? [FK]
+  - promotionCode: String(50)?
+  - totalAmount: Decimal(12,0)
+  - discountAmount: Decimal(12,0) = 0
+  - finalAmount: Decimal(12,0)
+  - status: OrderStatus = PENDING_PAYMENT
+  - reservationExpiresAt: DateTime
+  - note: String(255)?
+  - createdAt: DateTime
+  - updatedAt: DateTime
+  --
+  + create(userId: UUID, body: unknown): Order
+  + markPaid(tx: TransactionClient, id: UUID): void
+  + cancel(userId: UUID, id: UUID, expired: boolean): void
+  + owned(userId: UUID, id: UUID): Order
+}
+
+class Payment {
+  - id: UUID [PK]
+  - orderId: UUID [FK]
+  - idempotencyKey: String(255) [UK]
+  - paymentMethod: PaymentMethod
+  - transactionId: String(255)?
+  - amount: Decimal(12,0)
+  - status: PaymentStatus = PENDING
+  - paymentUrl: String?
+  - needsReview: boolean = false
+  - createdAt: DateTime
+  - updatedAt: DateTime
+  --
+  + create(userId: UUID, body: unknown, ip: String): Payment
+  + bankQr(userId: UUID, orderId: UUID): BankQrResponse
+  + retry(userId: UUID, orderId: UUID): Payment
+  + handleReturn(userId: UUID, body: unknown): ReturnResult
+  + expireOrders(): void
+}
+
+class OrderItem {
+  - id: UUID [PK]
+  - orderId: UUID [FK]
+  - productId: UUID [FK]
+  - productName: String(100)
+  - size: DrinkSize
+  - sweetnessLevel: DrinkLevel
+  - iceLevel: DrinkLevel
+  - quantity: int
+  - basePrice: Decimal(12,0)
+  - sizePriceAdjustment: Decimal(12,0) = 0
+  - unitPrice: Decimal(12,0)
+  - toppingTotal: Decimal(12,0) = 0
+  - totalPrice: Decimal(12,0)
+  - rewardRedemptionId: UUID? [FK,UK]
+  - note: String(255)?
+  --
+  + create(tx: TransactionClient, line: OrderItemDto): OrderItem
+  + calculatePrice(basePrice, sizeAdj, toppings): Decimal
+}
+
+class OrderItemTopping {
+  - id: UUID [PK]
+  - orderItemId: UUID [FK]
+  - toppingId: UUID [FK]
+  - toppingName: String(100)
+  - toppingPrice: Decimal(12,0)
+  --
+  + create(tx: TransactionClient, orderItemId, toppingId): void
+}
+
+Order "1" --> "0..*" Payment : thanh toán
+Order "1" --> "1..*" OrderItem : chứa các món
+OrderItem "1" --> "0..*" OrderItemTopping : kèm topping
+@enduml

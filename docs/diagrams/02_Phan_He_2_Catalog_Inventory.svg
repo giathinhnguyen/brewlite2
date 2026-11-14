@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1590 860" width="1590" height="860">
+  <defs>
+    <style type="text/css"><![CDATA[
+  .uml-box { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+  .uml-divider { stroke: #000000; stroke-width: 1.5; }
+  .stereotype { font-size: 11px; font-style: italic; fill: #333333; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .class-title { font-size: 14px; font-weight: 700; fill: #000000; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .member-text { font-size: 12px; fill: #000000; font-family: 'Consolas', 'Courier New', monospace; font-weight: 500; }
+  .conn-line { stroke: #000000; stroke-width: 1.4; fill: none; stroke-linejoin: miter; }
+  .conn-dashed { stroke: #000000; stroke-width: 1.4; fill: none; stroke-dasharray: 6, 4; stroke-linejoin: miter; }
+  .multiplicity { font-size: 11px; font-weight: 600; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; }
+  .label-bg { fill: #ffffff; }
+  .rel-label { font-size: 11px; font-weight: 500; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; text-anchor: middle; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1.5 L 8 5 L 0 8.5" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1590" height="860" fill="#ffffff" />
+
+  <!-- RELATIONSHIPS -->
+  <path d="M 160.0 222 L 160.0 290" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="88.8" y="243.0" width="74.5" height="18" class="label-bg" />
+  <text x="126.0" y="256.0" class="rel-label">phân loại</text>
+  <text x="170.0" y="240" class="multiplicity">1</text>
+  <text x="170.0" y="280" class="multiplicity">0..*</text>
+  <path d="M 330 405 L 400 405" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="334.2" y="411.0" width="61.5" height="18" class="label-bg" />
+  <text x="365.0" y="424.0" class="rel-label">có size</text>
+  <text x="340" y="395" class="multiplicity">1</text>
+  <text x="372" y="395" class="multiplicity">1..*</text>
+  <path d="M 566.0 290 L 566.0 222" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="487.5" y="243.0" width="81.0" height="18" class="label-bg" />
+  <text x="528.0" y="256.0" class="rel-label">chính sách</text>
+  <text x="576.0" y="280" class="multiplicity">1</text>
+  <text x="576.0" y="240" class="multiplicity">0..*</text>
+  <path d="M 732 405 L 790 405" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="720.5" y="411.0" width="81.0" height="18" class="label-bg" />
+  <text x="761.0" y="424.0" class="rel-label">định lượng</text>
+  <text x="742" y="395" class="multiplicity">1</text>
+  <text x="762" y="395" class="multiplicity">0..*</text>
+  <path d="M 1210 405 L 1130 405" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="1132.8" y="411.0" width="74.5" height="18" class="label-bg" />
+  <text x="1170.0" y="424.0" class="rel-label">công thức</text>
+  <text x="1194" y="395" class="multiplicity">1</text>
+  <text x="1140" y="395" class="multiplicity">0..*</text>
+  <path d="M 1380.0 526 L 1380.0 620" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="1308.8" y="560.0" width="74.5" height="18" class="label-bg" />
+  <text x="1346.0" y="573.0" class="rel-label">số dư tồn</text>
+  <text x="1390.0" y="544" class="multiplicity">1</text>
+  <text x="1390.0" y="610" class="multiplicity">0..1</text>
+
+  <!-- UML CLASSES -->
+  <g id="class-Category">
+    <rect x="40" y="40" width="240" height="182" class="uml-box" rx="2" />
+    <line x1="40" y1="74" x2="280" y2="74" class="uml-divider" />
+    <line x1="40" y1="184" x2="280" y2="184" class="uml-divider" />
+    <text x="160.0" y="62" class="class-title">Category</text>
+    <text x="54" y="96" class="member-text">- id: UUID [PK]</text>
+    <text x="54" y="114" class="member-text">- name: String [UK]</text>
+    <text x="54" y="132" class="member-text">- slug: String [UK]</text>
+    <text x="54" y="150" class="member-text">- displayOrder: int</text>
+    <text x="54" y="168" class="member-text">- isActive: boolean</text>
+    <text x="54" y="206" class="member-text">+ findAll(): Category[]</text>
+  </g>
+  <g id="class-CustomizationPolicy">
+    <rect x="390" y="40" width="320" height="182" class="uml-box" rx="2" />
+    <line x1="390" y1="74" x2="710" y2="74" class="uml-divider" />
+    <line x1="390" y1="184" x2="710" y2="184" class="uml-divider" />
+    <text x="550.0" y="62" class="class-title">CustomizationPolicy</text>
+    <text x="404" y="96" class="member-text">- productSizeId: UUID [PK,FK]</text>
+    <text x="404" y="114" class="member-text">- axis: CustomizationAxis [PK]</text>
+    <text x="404" y="132" class="member-text">- allowedLevels: int[]</text>
+    <text x="404" y="150" class="member-text">- defaultLevel: int = 100</text>
+    <text x="404" y="168" class="member-text">- policyNote: String?</text>
+    <text x="404" y="206" class="member-text">+ findPolicies(sizeId: UUID): Policy[]</text>
+  </g>
+  <g id="class-Product">
+    <rect x="40" y="290" width="290" height="254" class="uml-box" rx="2" />
+    <line x1="40" y1="324" x2="330" y2="324" class="uml-divider" />
+    <line x1="40" y1="470" x2="330" y2="470" class="uml-divider" />
+    <text x="185.0" y="312" class="class-title">Product</text>
+    <text x="54" y="346" class="member-text">- id: UUID [PK]</text>
+    <text x="54" y="364" class="member-text">- categoryId: UUID [FK]</text>
+    <text x="54" y="382" class="member-text">- name: String</text>
+    <text x="54" y="400" class="member-text">- description: String?</text>
+    <text x="54" y="418" class="member-text">- basePrice: Decimal</text>
+    <text x="54" y="436" class="member-text">- imageUrl: String?</text>
+    <text x="54" y="454" class="member-text">- isActive: boolean</text>
+    <text x="54" y="492" class="member-text">+ findAll(): Product[]</text>
+    <text x="54" y="510" class="member-text">+ findOne(id: UUID): Product</text>
+    <text x="54" y="528" class="member-text">+ product(id: UUID, body): Product</text>
+  </g>
+  <g id="class-ProductSize">
+    <rect x="400" y="290" width="332" height="200" class="uml-box" rx="2" />
+    <line x1="400" y1="324" x2="732" y2="324" class="uml-divider" />
+    <line x1="400" y1="452" x2="732" y2="452" class="uml-divider" />
+    <text x="566.0" y="312" class="class-title">ProductSize</text>
+    <text x="414" y="346" class="member-text">- id: UUID [PK]</text>
+    <text x="414" y="364" class="member-text">- productId: UUID [FK]</text>
+    <text x="414" y="382" class="member-text">- size: DrinkSize</text>
+    <text x="414" y="400" class="member-text">- priceAdjustment: Decimal</text>
+    <text x="414" y="418" class="member-text">- cupVolumeMl: int?</text>
+    <text x="414" y="436" class="member-text">- isActive: boolean</text>
+    <text x="414" y="474" class="member-text">+ availability(tx, sizeIds): SizeAvail[]</text>
+  </g>
+  <g id="class-ProductIngredient">
+    <rect x="790" y="290" width="340" height="182" class="uml-box" rx="2" />
+    <line x1="790" y1="324" x2="1130" y2="324" class="uml-divider" />
+    <line x1="790" y1="416" x2="1130" y2="416" class="uml-divider" />
+    <text x="960.0" y="312" class="class-title">ProductIngredient</text>
+    <text x="804" y="346" class="member-text">- productSizeId: UUID [PK,FK]</text>
+    <text x="804" y="364" class="member-text">- ingredientId: UUID [PK,FK]</text>
+    <text x="804" y="382" class="member-text">- quantity: Decimal(14,3)</text>
+    <text x="804" y="400" class="member-text">- adjustmentGroup: IngredientAdjustment</text>
+    <text x="804" y="438" class="member-text">+ recipe(sizeId: UUID, body): void</text>
+    <text x="804" y="456" class="member-text">+ requirements(tx, lines): Requirement[]</text>
+  </g>
+  <g id="class-Ingredient">
+    <rect x="1210" y="290" width="340" height="236" class="uml-box" rx="2" />
+    <line x1="1210" y1="324" x2="1550" y2="324" class="uml-divider" />
+    <line x1="1210" y1="470" x2="1550" y2="470" class="uml-divider" />
+    <text x="1380.0" y="312" class="class-title">Ingredient</text>
+    <text x="1224" y="346" class="member-text">- id: UUID [PK]</text>
+    <text x="1224" y="364" class="member-text">- code: String(10) [UK]</text>
+    <text x="1224" y="382" class="member-text">- name: String(120)</text>
+    <text x="1224" y="400" class="member-text">- unit: String(5)</text>
+    <text x="1224" y="418" class="member-text">- unitCostVnd: Decimal(14,4)</text>
+    <text x="1224" y="436" class="member-text">- reorderLevel: Decimal(14,3)</text>
+    <text x="1224" y="454" class="member-text">- isActive: boolean</text>
+    <text x="1224" y="492" class="member-text">+ ingredient(id: UUID, body): Ingredient</text>
+    <text x="1224" y="510" class="member-text">+ overview(): IngredientOverview[]</text>
+  </g>
+  <g id="class-Topping">
+    <rect x="40" y="620" width="240" height="164" class="uml-box" rx="2" />
+    <line x1="40" y1="654" x2="280" y2="654" class="uml-divider" />
+    <line x1="40" y1="746" x2="280" y2="746" class="uml-divider" />
+    <text x="160.0" y="642" class="class-title">Topping</text>
+    <text x="54" y="676" class="member-text">- id: UUID [PK]</text>
+    <text x="54" y="694" class="member-text">- name: String [UK]</text>
+    <text x="54" y="712" class="member-text">- price: Decimal</text>
+    <text x="54" y="730" class="member-text">- isActive: boolean</text>
+    <text x="54" y="768" class="member-text">+ findAll(): Topping[]</text>
+  </g>
+  <g id="class-IngredientStock">
+    <rect x="1210" y="620" width="340" height="200" class="uml-box" rx="2" />
+    <line x1="1210" y1="654" x2="1550" y2="654" class="uml-divider" />
+    <line x1="1210" y1="746" x2="1550" y2="746" class="uml-divider" />
+    <text x="1380.0" y="642" class="class-title">IngredientStock</text>
+    <text x="1224" y="676" class="member-text">- ingredientId: UUID [PK,FK]</text>
+    <text x="1224" y="694" class="member-text">- onHand: Decimal(14,3)</text>
+    <text x="1224" y="712" class="member-text">- reserved: Decimal(14,3)</text>
+    <text x="1224" y="730" class="member-text">- updatedAt: DateTime</text>
+    <text x="1224" y="768" class="member-text">+ assertAvailable(tx, lines): void</text>
+    <text x="1224" y="786" class="member-text">+ reserve(tx, orderId: UUID, lines): void</text>
+    <text x="1224" y="804" class="member-text">+ settle(tx, orderId: UUID, action): void</text>
+  </g>
+</svg>

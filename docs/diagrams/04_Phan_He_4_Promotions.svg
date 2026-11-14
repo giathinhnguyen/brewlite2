@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1020 500" width="1020" height="500">
+  <defs>
+    <style type="text/css"><![CDATA[
+  .uml-box { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+  .uml-divider { stroke: #000000; stroke-width: 1.5; }
+  .stereotype { font-size: 11px; font-style: italic; fill: #333333; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .class-title { font-size: 14px; font-weight: 700; fill: #000000; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .member-text { font-size: 12px; fill: #000000; font-family: 'Consolas', 'Courier New', monospace; font-weight: 500; }
+  .conn-line { stroke: #000000; stroke-width: 1.4; fill: none; stroke-linejoin: miter; }
+  .conn-dashed { stroke: #000000; stroke-width: 1.4; fill: none; stroke-dasharray: 6, 4; stroke-linejoin: miter; }
+  .multiplicity { font-size: 11px; font-weight: 600; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; }
+  .label-bg { fill: #ffffff; }
+  .rel-label { font-size: 11px; font-weight: 500; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; text-anchor: middle; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1.5 L 8 5 L 0 8.5" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1020" height="500" fill="#ffffff" />
+
+  <!-- RELATIONSHIPS -->
+  <path d="M 505 235 L 610 235" class="conn-line" marker-end="url(#arrow)" />
+  <rect x="513.8" y="242.0" width="87.5" height="18" class="label-bg" />
+  <text x="557.5" y="255.0" class="rel-label">áp dụng cho</text>
+  <text x="517" y="224" class="multiplicity">1</text>
+  <text x="582" y="224" class="multiplicity">0..*</text>
+
+  <!-- UML CLASSES -->
+  <g id="class-Promotion">
+    <rect x="40" y="40" width="465" height="416" class="uml-box" rx="2" />
+    <line x1="40" y1="74" x2="505" y2="74" class="uml-divider" />
+    <line x1="40" y1="364" x2="505" y2="364" class="uml-divider" />
+    <text x="272.5" y="62" class="class-title">Promotion</text>
+    <text x="54" y="96" class="member-text">- id: UUID [PK]</text>
+    <text x="54" y="114" class="member-text">- code: String(50) [UK]</text>
+    <text x="54" y="132" class="member-text">- title: String(100)?</text>
+    <text x="54" y="150" class="member-text">- description: String?</text>
+    <text x="54" y="168" class="member-text">- displayOrder: int = 0</text>
+    <text x="54" y="186" class="member-text">- appliesToAllProducts: boolean = true</text>
+    <text x="54" y="204" class="member-text">- discountType: DiscountType</text>
+    <text x="54" y="222" class="member-text">- discountValue: Decimal(12,0)</text>
+    <text x="54" y="240" class="member-text">- maxDiscountAmount: Decimal(12,0)?</text>
+    <text x="54" y="258" class="member-text">- minOrderAmount: Decimal(12,0) = 0</text>
+    <text x="54" y="276" class="member-text">- isActive: boolean = true</text>
+    <text x="54" y="294" class="member-text">- startDate: DateTime?</text>
+    <text x="54" y="312" class="member-text">- endDate: DateTime?</text>
+    <text x="54" y="330" class="member-text">- createdAt: DateTime</text>
+    <text x="54" y="348" class="member-text">- updatedAt: DateTime</text>
+    <text x="54" y="386" class="member-text">+ findAll(): Promotion[]</text>
+    <text x="54" y="404" class="member-text">+ quote(body: QuotePromotionDto): QuoteResult</text>
+    <text x="54" y="422" class="member-text">+ calculateQuote(tx: TransactionClient, body): QuoteResult</text>
+    <text x="54" y="440" class="member-text">+ activeWhere(now: Date): WhereInput</text>
+  </g>
+  <g id="class-PromotionProduct">
+    <rect x="610" y="150" width="398" height="146" class="uml-box" rx="2" />
+    <line x1="610" y1="184" x2="1008" y2="184" class="uml-divider" />
+    <line x1="610" y1="240" x2="1008" y2="240" class="uml-divider" />
+    <text x="809.0" y="172" class="class-title">PromotionProduct</text>
+    <text x="624" y="206" class="member-text">- promotionId: UUID [PK,FK]</text>
+    <text x="624" y="224" class="member-text">- productId: UUID [PK,FK]</text>
+    <text x="624" y="262" class="member-text">+ save(promotionId: UUID, body): void</text>
+    <text x="624" y="280" class="member-text">+ findMany(promotionId: UUID): PromotionProduct[]</text>
+  </g>
+</svg>

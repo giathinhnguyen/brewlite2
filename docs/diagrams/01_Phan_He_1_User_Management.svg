@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 740" width="980" height="740">
+  <defs>
+    <style type="text/css"><![CDATA[
+  .uml-box { fill: #ffffff; stroke: #000000; stroke-width: 1.5; }
+  .uml-divider { stroke: #000000; stroke-width: 1.5; }
+  .stereotype { font-size: 11px; font-style: italic; fill: #333333; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .class-title { font-size: 14px; font-weight: 700; fill: #000000; text-anchor: middle; font-family: 'Segoe UI', Arial, sans-serif; }
+  .member-text { font-size: 12px; fill: #000000; font-family: 'Consolas', 'Courier New', monospace; font-weight: 500; }
+  .conn-line { stroke: #000000; stroke-width: 1.4; fill: none; stroke-linejoin: miter; }
+  .conn-dashed { stroke: #000000; stroke-width: 1.4; fill: none; stroke-dasharray: 6, 4; stroke-linejoin: miter; }
+  .multiplicity { font-size: 11px; font-weight: 600; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; }
+  .label-bg { fill: #ffffff; }
+  .rel-label { font-size: 11px; font-weight: 500; fill: #000000; font-family: 'Segoe UI', Arial, sans-serif; text-anchor: middle; }
+    ]]></style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 1.5 L 8 5 L 0 8.5" fill="none" stroke="#000000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="980" height="740" fill="#ffffff" />
+
+  <!-- RELATIONSHIPS -->
+  <path d="M 360 195 L 580 195" class="conn-dashed" marker-end="url(#arrow)" />
+  <rect x="364.5" y="167.0" width="211.0" height="18" class="label-bg" />
+  <text x="470.0" y="180.0" class="rel-label">xác minh thành công → tạo User</text>
+  <path d="M 755.0 355 L 755.0 430" class="conn-line" />
+  <rect x="577.8" y="379.5" width="178.5" height="18" class="label-bg" />
+  <text x="667.0" y="392.5" class="rel-label">có thử thách đặt mật khẩu</text>
+  <text x="765.0" y="373" class="multiplicity">1</text>
+  <text x="765.0" y="420" class="multiplicity">0..1</text>
+
+  <!-- UML CLASSES -->
+  <g id="class-EmailRegistration">
+    <rect x="40" y="60" width="320" height="284" class="uml-box" rx="2" />
+    <line x1="40" y1="106" x2="360" y2="106" class="uml-divider" />
+    <line x1="40" y1="270" x2="360" y2="270" class="uml-divider" />
+    <text x="200.0" y="77" class="stereotype">&lt;&lt;class&gt;&gt;</text>
+    <text x="200.0" y="96" class="class-title">EmailRegistration</text>
+    <text x="54" y="128" class="member-text">+ id: UUID (PK)</text>
+    <text x="54" y="146" class="member-text">+ email: String (unique)</text>
+    <text x="54" y="164" class="member-text">+ fullName: String</text>
+    <text x="54" y="182" class="member-text">+ passwordHash: String</text>
+    <text x="54" y="200" class="member-text">+ codeHash: String</text>
+    <text x="54" y="218" class="member-text">+ attempts: Int = 0</text>
+    <text x="54" y="236" class="member-text">+ expiresAt: DateTime</text>
+    <text x="54" y="254" class="member-text">+ sentAt: DateTime</text>
+    <text x="54" y="292" class="member-text">+ start(): EmailRegistration</text>
+    <text x="54" y="310" class="member-text">+ resend(): EmailRegistration</text>
+    <text x="54" y="328" class="member-text">+ verify(code: String): User</text>
+  </g>
+  <g id="class-User">
+    <rect x="580" y="35" width="350" height="320" class="uml-box" rx="2" />
+    <line x1="580" y1="81" x2="930" y2="81" class="uml-divider" />
+    <line x1="580" y1="281" x2="930" y2="281" class="uml-divider" />
+    <text x="755.0" y="52" class="stereotype">&lt;&lt;class&gt;&gt;</text>
+    <text x="755.0" y="71" class="class-title">User</text>
+    <text x="594" y="103" class="member-text">+ id: UUID (PK)</text>
+    <text x="594" y="121" class="member-text">+ email: String (unique)</text>
+    <text x="594" y="139" class="member-text">+ passwordHash: String?</text>
+    <text x="594" y="157" class="member-text">+ fullName: String</text>
+    <text x="594" y="175" class="member-text">+ googleId: String? (unique)</text>
+    <text x="594" y="193" class="member-text">+ role: UserRole = CUSTOMER</text>
+    <text x="594" y="211" class="member-text">+ loyaltyPoints: Int = 0</text>
+    <text x="594" y="229" class="member-text">+ reservedPoints: Int = 0</text>
+    <text x="594" y="247" class="member-text">+ createdAt: DateTime</text>
+    <text x="594" y="265" class="member-text">+ updatedAt: DateTime</text>
+    <text x="594" y="303" class="member-text">+ login(email, password): AuthSession</text>
+    <text x="594" y="321" class="member-text">+ googleLogin(credential): AuthSession</text>
+    <text x="594" y="339" class="member-text">+ getCurrentUser(): UserProfile</text>
+  </g>
+  <g id="class-PasswordSetupChallenge">
+    <rect x="580" y="430" width="350" height="248" class="uml-box" rx="2" />
+    <line x1="580" y1="476" x2="930" y2="476" class="uml-divider" />
+    <line x1="580" y1="604" x2="930" y2="604" class="uml-divider" />
+    <text x="755.0" y="447" class="stereotype">&lt;&lt;class&gt;&gt;</text>
+    <text x="755.0" y="466" class="class-title">PasswordSetupChallenge</text>
+    <text x="594" y="498" class="member-text">+ id: UUID (PK)</text>
+    <text x="594" y="516" class="member-text">+ userId: UUID (FK, unique)</text>
+    <text x="594" y="534" class="member-text">+ codeHash: String</text>
+    <text x="594" y="552" class="member-text">+ attempts: Int = 0</text>
+    <text x="594" y="570" class="member-text">+ expiresAt: DateTime</text>
+    <text x="594" y="588" class="member-text">+ sentAt: DateTime</text>
+    <text x="594" y="626" class="member-text">+ requestCode(): void</text>
+    <text x="594" y="644" class="member-text">+ verifyCode(code: String): Boolean</text>
+    <text x="594" y="662" class="member-text">+ setPassword(password): void</text>
+  </g>
+</svg>
