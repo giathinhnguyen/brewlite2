@@ -1,0 +1,7 @@
+- **Tiêu đề**: ADR-001: Tổ chức mã nguồn theo mô hình Monorepo với pnpm Workspaces
+- **Trạng thái**: Accepted (Đã chấp nhận)
+- **Bối cảnh**: Dự án BrewLite gồm Frontend (`apps/web`), Backend (`apps/api`), tài liệu thiết kế (`docs/`) và cấu hình Docker/CI. Nhóm cần quản lý phiên bản đồng bộ giữa giao diện và API qua 2 Sprint.
+- **Quyết định**: Sử dụng **Monorepo** quản lý bởi `pnpm@12.14.0` (`pnpm-workspace.yaml` khai báo `packages: ["apps/*"]`).
+- **Hệ quả**:
+  - *Tích cực*: Tái sử dụng bộ nhớ đệm dependency qua `pnpm-lock.yaml` duy nhất; một Pull Request có thể chứa trọn vẹn một tính năng từ DB migration, API đến UI và tài liệu; pipeline CI chạy kiểm tra đồng bộ bằng `pnpm --recursive`.
+  - *Đánh đổi*: Cần cấu hình bộ lọc (`--filter web`, `--filter api`) trong lệnh build/test và cấu hình Docker context ở thư mục gốc.

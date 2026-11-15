@@ -1,0 +1,7 @@
+- **Tiêu đề**: ADR-002: Kiến trúc Modular Monolith với NestJS và Prisma ORM trên PostgreSQL
+- **Trạng thái**: Accepted
+- **Bối cảnh**: Nghiệp vụ đặt nước có sự phụ thuộc chặt chẽ giữa Sản phẩm, Công thức nguyên liệu, Giỏ hàng, Khuyến mãi, Đổi điểm và Thanh toán.
+- **Quyết định**: Xây dựng Backend theo kiến trúc **Modular Monolith** bằng **NestJS 12** kết hợp **Prisma ORM v6** và **PostgreSQL 16**. Chia sẻ logic giỏ hàng và đổi thưởng qua `CartServicesModule` chung để tránh phụ thuộc vòng (Circular Dependency).
+- **Hệ quả**:
+  - *Tích cực*: Cho phép dùng `prisma.$transaction` xuyên suốt nhiều domain service để đảm bảo tính nguyên tử (ACID); tận dụng `prisma migrate deploy` để kiểm soát lịch sử thay đổi schema an toàn.
+  - *Đánh đổi*: Mọi module chia sẻ chung kết nối tới một cơ sở dữ liệu PostgreSQL duy nhất.

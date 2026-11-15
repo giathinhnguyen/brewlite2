@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1480 1060" width="100%" height="100%" style="background-color: #FFFFFF; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;">
+  <defs>
+    <!-- Arrow Marker -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1D4ED8"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#15803D"/>
+    </marker>
+    <!-- Drop Shadow Filter -->
+    <filter id="shadow" x="-3%" y="-3%" width="106%" height="106%" filterUnits="userSpaceOnUse">
+      <feGaussianBlur stdDeviation="3" in="SourceAlpha"/>
+      <feOffset dx="2" dy="2"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.08"/></feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- TITLE & FOOTER -->
+  <text x="740" y="38" font-size="20" font-weight="bold" fill="#0F172A" text-anchor="middle">UML Deployment Diagram – Hệ thống BrewLite (Local, CI/CD &amp; Production)</text>
+  <text x="740" y="60" font-size="13" fill="#64748B" text-anchor="middle">Repository: https://github.com/giathinhnguyen/brewlite2.git | Next.js Mobile-first/PWA, NestJS, PostgreSQL 16 &amp; Docker</text>
+  <text x="740" y="1042" font-size="12" fill="#94A3B8" text-anchor="middle">Assignment 2: Requirements to Deployment — Khoa CNTT - Đại học Sài Gòn (2026–2027)</text>
+
+  <!-- ==================== 1. CLIENT DEVICE ==================== -->
+  <g transform="translate(40, 90)">
+    <rect width="320" height="280" rx="8" fill="#F8FAFC" stroke="#334155" stroke-width="1.8" filter="url(#shadow)"/>
+    <path d="M 0 0 L 15 15 L 335 15 L 320 0 Z" fill="#E2E8F0" stroke="#334155" stroke-width="1.8"/>
+    <path d="M 320 0 L 335 15 L 335 295 L 320 280 Z" fill="#CBD5E1" stroke="#334155" stroke-width="1.8"/>
+    <text x="160" y="28" font-size="12" fill="#64748B" text-anchor="middle">&lt;&lt;device&gt;&gt;</text>
+    <text x="160" y="46" font-size="14" font-weight="bold" fill="#0F172A" text-anchor="middle">Thiết bị Người dùng</text>
+    <text x="160" y="64" font-size="12" fill="#475569" text-anchor="middle">(Customer / Admin Device)</text>
+
+    <!-- Execution Environment: Browser -->
+    <rect x="20" y="85" width="280" height="175" rx="6" fill="#FFFFFF" stroke="#475569" stroke-width="1.4"/>
+    <text x="160" y="108" font-size="11" fill="#64748B" text-anchor="middle">&lt;&lt;executionEnvironment&gt;&gt;</text>
+    <text x="160" y="125" font-size="13" font-weight="bold" fill="#1E293B" text-anchor="middle">Mobile / Desktop Web Browser</text>
+
+    <!-- Artifact: Next.js PWA Client -->
+    <rect x="35" y="145" width="250" height="95" rx="4" fill="#F1F5F9" stroke="#64748B" stroke-dasharray="4,3"/>
+    <text x="160" y="170" font-size="11" fill="#475569" text-anchor="middle">&lt;&lt;artifact&gt;&gt;</text>
+    <text x="160" y="188" font-size="12" font-weight="bold" fill="#0F172A" text-anchor="middle">BrewLite Mobile-First Web/PWA</text>
+    <text x="160" y="206" font-size="11" fill="#475569" text-anchor="middle">(Next.js PWA Client Bundle)</text>
+    <text x="160" y="224" font-size="10" fill="#059669" text-anchor="middle">Service Worker &amp; Offline Cache</text>
+  </g>
+
+  <!-- ==================== 2. CI/CD BOUNDARY ==================== -->
+  <g transform="translate(400, 90)">
+    <rect width="470" height="280" rx="8" fill="#F8FAFC" stroke="#0284C7" stroke-width="1.8" stroke-dasharray="6,4" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="470" height="30" rx="6" fill="#E0F2FE"/>
+    <text x="235" y="20" font-size="13" font-weight="bold" fill="#0369A1" text-anchor="middle">Ranh giới CI/CD Pipeline (GitHub Actions - giathinhnguyen/brewlite2)</text>
+
+    <!-- GH Actions Runner -->
+    <rect x="20" y="45" width="430" height="110" rx="6" fill="#FFFFFF" stroke="#334155" stroke-width="1.4"/>
+    <text x="235" y="65" font-size="11" fill="#64748B" text-anchor="middle">&lt;&lt;executionEnvironment&gt;&gt; GitHub Actions Runner</text>
+    <text x="235" y="85" font-size="12" font-weight="bold" fill="#0F172A" text-anchor="middle">CI/CD Workflow (Node 22 / pnpm 12.14.0)</text>
+    <text x="235" y="103" font-size="11" fill="#334155" text-anchor="middle">1. Lint &amp; Typecheck ➔ 2. Unit/E2E Test ➔ 3. Build Web/API</text>
+    <text x="235" y="121" font-size="11" fill="#334155" text-anchor="middle">4. Prisma Migrate Deploy ➔ 5. Push Image ➔ 6. Smoke Test</text>
+    <text x="235" y="140" font-size="10" fill="#B45309" text-anchor="middle">Secrets: PROD_DATABASE_URL, DEPLOY_HOOK, REGISTRY_TOKEN</text>
+
+    <!-- Registry -->
+    <rect x="20" y="170" width="430" height="90" rx="6" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.4"/>
+    <text x="235" y="190" font-size="11" fill="#1D4ED8" text-anchor="middle">&lt;&lt;registry&gt;&gt; GitHub Container Registry (ghcr.io/giathinhnguyen)</text>
+    <rect x="40" y="202" width="180" height="45" rx="4" fill="#FFFFFF" stroke="#93C5FD"/>
+    <text x="130" y="222" font-size="11" font-weight="bold" fill="#1E3A8A" text-anchor="middle">brewlite2-web</text>
+    <text x="130" y="237" font-size="10" fill="#475569" text-anchor="middle">tag: &lt;commit-sha&gt;</text>
+
+    <rect x="250" y="202" width="180" height="45" rx="4" fill="#FFFFFF" stroke="#93C5FD"/>
+    <text x="340" y="222" font-size="11" font-weight="bold" fill="#1E3A8A" text-anchor="middle">brewlite2-api</text>
+    <text x="340" y="237" font-size="10" fill="#475569" text-anchor="middle">tag: &lt;commit-sha&gt;</text>
+  </g>
+
+  <!-- ==================== 3. EXTERNAL THIRD-PARTY ==================== -->
+  <g transform="translate(910, 90)">
+    <rect width="530" height="280" rx="8" fill="#FFFBEB" stroke="#D97706" stroke-width="1.8" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="530" height="30" rx="6" fill="#FEF3C7"/>
+    <text x="265" y="20" font-size="13" font-weight="bold" fill="#B45309" text-anchor="middle">Dịch vụ Bên ngoài (External Cloud Services)</text>
+
+    <!-- 4 External Nodes -->
+    <rect x="25" y="45" width="225" height="100" rx="6" fill="#FFFFFF" stroke="#D97706" stroke-width="1.4"/>
+    <text x="137" y="68" font-size="11" fill="#B45309" text-anchor="middle">&lt;&lt;external&gt;&gt;</text>
+    <text x="137" y="88" font-size="13" font-weight="bold" fill="#0F172A" text-anchor="middle">VNPay Sandbox</text>
+    <text x="137" y="106" font-size="11" fill="#475569" text-anchor="middle">HMAC-SHA512 Webhook</text>
+    <text x="137" y="124" font-size="11" fill="#0284C7" text-anchor="middle">IPN &amp; QueryDR (HTTPS :443)</text>
+
+    <rect x="280" y="45" width="225" height="100" rx="6" fill="#FFFFFF" stroke="#D97706" stroke-width="1.4"/>
+    <text x="392" y="68" font-size="11" fill="#B45309" text-anchor="middle">&lt;&lt;external&gt;&gt;</text>
+    <text x="392" y="88" font-size="13" font-weight="bold" fill="#0F172A" text-anchor="middle">VietQR Service</text>
+    <text x="392" y="106" font-size="11" fill="#475569" text-anchor="middle">img.vietqr.io Quick Link</text>
+    <text x="392" y="124" font-size="11" fill="#0284C7" text-anchor="middle">Sinh ảnh QR SVG động</text>
+
+    <rect x="25" y="160" width="225" height="100" rx="6" fill="#FFFFFF" stroke="#D97706" stroke-width="1.4"/>
+    <text x="137" y="183" font-size="11" fill="#B45309" text-anchor="middle">&lt;&lt;external&gt;&gt;</text>
+    <text x="137" y="203" font-size="13" font-weight="bold" fill="#0F172A" text-anchor="middle">Google Identity</text>
+    <text x="137" y="221" font-size="11" fill="#475569" text-anchor="middle">OAuth 2.0 / ID Token</text>
+    <text x="137" y="239" font-size="11" fill="#0284C7" text-anchor="middle">HTTPS :443 Verify</text>
+
+    <rect x="280" y="160" width="225" height="100" rx="6" fill="#FFFFFF" stroke="#D97706" stroke-width="1.4"/>
+    <text x="392" y="183" font-size="11" fill="#B45309" text-anchor="middle">&lt;&lt;external&gt;&gt;</text>
+    <text x="392" y="203" font-size="13" font-weight="bold" fill="#0F172A" text-anchor="middle">Gmail SMTP Server</text>
+    <text x="392" y="221" font-size="11" fill="#475569" text-anchor="middle">Gửi mã OTP 6 số xác thực</text>
+    <text x="392" y="239" font-size="11" fill="#0284C7" text-anchor="middle">SMTPS Port 465 (TLS)</text>
+  </g>
+
+  <!-- ==================== 4. LOCAL DEVELOPMENT ==================== -->
+  <g transform="translate(40, 410)">
+    <rect width="320" height="600" rx="8" fill="#F8FAFC" stroke="#64748B" stroke-width="1.8" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="320" height="30" rx="6" fill="#E2E8F0"/>
+    <text x="160" y="20" font-size="12" font-weight="bold" fill="#334155" text-anchor="middle">Local Development (docker-compose.yml)</text>
+
+    <!-- Local Docker Node -->
+    <text x="160" y="55" font-size="11" fill="#64748B" text-anchor="middle">&lt;&lt;device&gt;&gt; Docker Host (Developer PC)</text>
+
+    <!-- Local Web Container -->
+    <rect x="20" y="70" width="280" height="135" rx="6" fill="#FFFFFF" stroke="#0284C7" stroke-width="1.4"/>
+    <text x="160" y="93" font-size="11" fill="#0284C7" text-anchor="middle">&lt;&lt;container&gt;&gt;</text>
+    <text x="160" y="112" font-size="13" font-weight="bold" fill="#0F172A" text-anchor="middle">Container: brewlite-web</text>
+    <text x="160" y="130" font-size="12" fill="#334155" text-anchor="middle">Node 22 / Next.js Dev</text>
+    <text x="160" y="148" font-size="11" fill="#0284C7" text-anchor="middle">Port: 3001 (Host) ➔ 3000</text>
+    <text x="160" y="168" font-size="10" fill="#64748B" text-anchor="middle">Hot Module Replacement (HMR)</text>
+
+    <!-- Local API Container -->
+    <rect x="20" y="240" width="280" height="145" rx="6" fill="#FFFFFF" stroke="#15803D" stroke-width="1.4"/>
+    <text x="160" y="263" font-size="11" fill="#15803D" text-anchor="middle">&lt;&lt;container&gt;&gt;</text>
+    <text x="160" y="282" font-size="13" font-weight="bold" fill="#0F172A" text-anchor="middle">Container: brewlite-api</text>
+    <text x="160" y="300" font-size="12" fill="#334155" text-anchor="middle">Node 22 / NestJS Server</text>
+    <text x="160" y="318" font-size="11" fill="#15803D" text-anchor="middle">Port: 3000 ➔ Prefix /api</text>
+    <text x="160" y="336" font-size="10" fill="#0284C7" text-anchor="middle">GET /api/health (Readiness)</text>
+    <text x="160" y="356" font-size="10" fill="#B45309" text-anchor="middle">Simulator Demo: Enabled</text>
+
+    <!-- Local DB Container -->
+    <rect x="20" y="420" width="280" height="150" rx="6" fill="#EFF6FF" stroke="#1D4ED8" stroke-width="1.4"/>
+    <text x="160" y="443" font-size="11" fill="#1D4ED8" text-anchor="middle">&lt;&lt;database&gt;&gt;</text>
+    <text x="160" y="462" font-size="13" font-weight="bold" fill="#1E3A8A" text-anchor="middle">Container: brewlite-postgres</text>
+    <text x="160" y="480" font-size="12" fill="#334155" text-anchor="middle">PostgreSQL 16 (:5432)</text>
+    <text x="160" y="498" font-size="11" fill="#15803D" text-anchor="middle">Healthcheck: pg_isready (5s)</text>
+
+    <!-- Local Volume -->
+    <rect x="40" y="512" width="240" height="42" rx="4" fill="#DBEAFE" stroke="#1D4ED8" stroke-dasharray="3,2"/>
+    <text x="160" y="530" font-size="10" fill="#1E3A8A" text-anchor="middle">&lt;&lt;volume&gt;&gt; postgres_data</text>
+    <text x="160" y="544" font-size="10" fill="#475569" text-anchor="middle">20 bảng + _prisma_migrations</text>
+
+    <!-- Local internal connections -->
+    <line x1="160" y1="205" x2="160" y2="240" stroke="#334155" stroke-width="1.4" marker-end="url(#arrow)"/>
+    <text x="165" y="226" font-size="10" fill="#475569">HTTP :3000/api</text>
+
+    <line x1="160" y1="385" x2="160" y2="420" stroke="#334155" stroke-width="1.4" marker-end="url(#arrow)"/>
+    <text x="165" y="405" font-size="10" fill="#475569">TCP :5432</text>
+  </g>
+
+  <!-- ==================== 5. PRODUCTION ENVIRONMENT ==================== -->
+  <g transform="translate(400, 410)">
+    <rect width="1040" height="600" rx="8" fill="#F0FDF4" stroke="#15803D" stroke-width="2" filter="url(#shadow)"/>
+    <rect x="0" y="0" width="1040" height="32" rx="6" fill="#DCFCE7"/>
+    <text x="520" y="22" font-size="14" font-weight="bold" fill="#166534" text-anchor="middle">Ranh giới Production Environment (Render / Railway Cloud Platform)</text>
+
+    <!-- Zone 1: Edge CDN / Next.js -->
+    <g transform="translate(30, 55)">
+      <rect width="280" height="515" rx="6" fill="#FFFFFF" stroke="#0284C7" stroke-width="1.4"/>
+      <rect x="0" y="0" width="280" height="26" rx="6" fill="#E0F2FE"/>
+      <text x="140" y="18" font-size="11" font-weight="bold" fill="#0369A1" text-anchor="middle">Public Edge / CDN Layer</text>
+
+      <text x="140" y="48" font-size="11" fill="#64748B" text-anchor="middle">&lt;&lt;cloud&gt;&gt; Edge Web Service</text>
+      <text x="140" y="70" font-size="14" font-weight="bold" fill="#0F172A" text-anchor="middle">brewlite-web</text>
+      <text x="140" y="88" font-size="11" fill="#475569" text-anchor="middle">(Next.js 14/15 App Router)</text>
+
+      <!-- Sub components -->
+      <rect x="15" y="110" width="250" height="110" rx="4" fill="#F8FAFC" stroke="#94A3B8"/>
+      <text x="140" y="130" font-size="11" font-weight="bold" fill="#1E293B" text-anchor="middle">Production PWA Bundle</text>
+      <text x="140" y="148" font-size="10" fill="#475569" text-anchor="middle">• SSR / SSG Menu Caching</text>
+      <text x="140" y="166" font-size="10" fill="#475569" text-anchor="middle">• Mobile-first Bottom Nav</text>
+      <text x="140" y="184" font-size="10" fill="#475569" text-anchor="middle">• Guest Cart + syncId Engine</text>
+      <text x="140" y="202" font-size="10" fill="#059669" text-anchor="middle">• Service Worker PWA Enabled</text>
+
+      <rect x="15" y="235" width="250" height="90" rx="4" fill="#EFF6FF" stroke="#93C5FD"/>
+      <text x="140" y="255" font-size="11" font-weight="bold" fill="#1E3A8A" text-anchor="middle">Runtime Injected Env</text>
+      <text x="140" y="275" font-size="10" fill="#334155" text-anchor="middle">NEXT_PUBLIC_API_URL</text>
+      <text x="140" y="293" font-size="10" fill="#334155" text-anchor="middle">NEXT_PUBLIC_GOOGLE_CLIENT_ID</text>
+      <text x="140" y="311" font-size="10" fill="#15803D" text-anchor="middle">Public Port: HTTPS 443 (TLS 1.3)</text>
+
+      <rect x="15" y="340" width="250" height="150" rx="4" fill="#F1F5F9" stroke="#CBD5E1"/>
+      <text x="140" y="360" font-size="11" font-weight="bold" fill="#0F172A" text-anchor="middle">Định tuyến Giao diện</text>
+      <text x="140" y="380" font-size="10" fill="#475569" text-anchor="middle">/ (Menu) | /products/[id]</text>
+      <text x="140" y="398" font-size="10" fill="#475569" text-anchor="middle">/cart | /checkout | /rewards</text>
+      <text x="140" y="416" font-size="10" fill="#475569" text-anchor="middle">/payments/return | /orders</text>
+      <text x="140" y="434" font-size="10" fill="#DC2626" text-anchor="middle">/admin/* (AdminGuard Protected)</text>
+      <text x="140" y="465" font-size="9" fill="#64748B" text-anchor="middle">Pull Image: ghcr.io/giathinhnguyen/brewlite2-web</text>
+    </g>
+
+    <!-- Zone 2: Application VPC / NestJS -->
+    <g transform="translate(340, 55)">
+      <rect width="360" height="515" rx="6" fill="#FFFFFF" stroke="#15803D" stroke-width="1.4"/>
+      <rect x="0" y="0" width="360" height="26" rx="6" fill="#DCFCE7"/>
+      <text x="180" y="18" font-size="11" font-weight="bold" fill="#166534" text-anchor="middle">Private Application VPC (apps/api)</text>
+
+      <text x="180" y="48" font-size="11" fill="#64748B" text-anchor="middle">&lt;&lt;container&gt;&gt; Docker (Node 22 Slim)</text>
+      <text x="180" y="70" font-size="14" font-weight="bold" fill="#0F172A" text-anchor="middle">brewlite-api</text>
+      <text x="180" y="88" font-size="11" fill="#166534" text-anchor="middle">Port 3000 (Private) ➔ HTTPS :443 (Reverse Proxy)</text>
+
+      <rect x="15" y="105" width="330" height="145" rx="4" fill="#F8FAFC" stroke="#94A3B8"/>
+      <text x="180" y="125" font-size="11" font-weight="bold" fill="#0F172A" text-anchor="middle">14 Domain Modules (NestJS 12)</text>
+      <text x="180" y="145" font-size="10" fill="#334155" text-anchor="middle">• Auth (JWT HS256, OTP SMTP, Google Auth)</text>
+      <text x="180" y="163" font-size="10" fill="#334155" text-anchor="middle">• Products, Toppings, Categories, Inventory (26 items)</text>
+      <text x="180" y="181" font-size="10" fill="#334155" text-anchor="middle">• Carts, Promotions (Fixed/%), Rewards (Redemption)</text>
+      <text x="180" y="199" font-size="10" fill="#334155" text-anchor="middle">• Orders (15-min Reservation ACID), Payments (VNPay/QR)</text>
+      <text x="180" y="217" font-size="10" fill="#334155" text-anchor="middle">• Admin Management &amp; HealthModule (/api/health)</text>
+      <text x="180" y="235" font-size="9" fill="#059669" text-anchor="middle">Background Worker: Quét giải phóng đơn quá hạn (60s)</text>
+
+      <rect x="15" y="260" width="330" height="120" rx="4" fill="#FEF3C7" stroke="#F59E0B"/>
+      <text x="180" y="280" font-size="11" font-weight="bold" fill="#92400E" text-anchor="middle">Production Secret Store</text>
+      <text x="180" y="300" font-size="10" fill="#334155" text-anchor="middle">DATABASE_URL (Private SSL connection)</text>
+      <text x="180" y="318" font-size="10" fill="#334155" text-anchor="middle">JWT_SECRET, WEB_ORIGIN</text>
+      <text x="180" y="336" font-size="10" fill="#334155" text-anchor="middle">VNPAY_TMN_CODE, VNPAY_HASH_SECRET</text>
+      <text x="180" y="354" font-size="10" fill="#B91C1C" text-anchor="middle">BANK_TRANSFER_DEMO_ENABLED=false (Disabled in Prod)</text>
+      <text x="180" y="370" font-size="9" fill="#64748B" text-anchor="middle">Logging: stdout/stderr ➔ Cloud Centralized Stream</text>
+
+      <rect x="15" y="390" width="330" height="100" rx="4" fill="#F0FDF4" stroke="#86EFAC"/>
+      <text x="180" y="410" font-size="11" font-weight="bold" fill="#166534" text-anchor="middle">Prisma Data Access Engine (v6)</text>
+      <text x="180" y="430" font-size="10" fill="#334155" text-anchor="middle">• Connection Pooling &amp; Query Batching</text>
+      <text x="180" y="448" font-size="10" fill="#334155" text-anchor="middle">• SELECT FOR UPDATE (Pessimistic Lock trên nguyên liệu)</text>
+      <text x="180" y="466" font-size="10" fill="#334155" text-anchor="middle">• Idempotency check: checkoutKey, idempotencyKey</text>
+
+      <text x="180" y="508" font-size="9" fill="#64748B" text-anchor="middle">Pull Image: ghcr.io/giathinhnguyen/brewlite2-api</text>
+    </g>
+
+    <!-- Zone 3: Private DB Subnet / Postgres -->
+    <g transform="translate(730, 55)">
+      <rect width="280" height="515" rx="6" fill="#FFFFFF" stroke="#1D4ED8" stroke-width="1.4"/>
+      <rect x="0" y="0" width="280" height="26" rx="6" fill="#DBEAFE"/>
+      <text x="140" y="18" font-size="11" font-weight="bold" fill="#1E40AF" text-anchor="middle">Private Database Subnet</text>
+
+      <text x="140" y="48" font-size="11" fill="#64748B" text-anchor="middle">&lt;&lt;database&gt;&gt; Managed Instance</text>
+      <text x="140" y="70" font-size="14" font-weight="bold" fill="#1E3A8A" text-anchor="middle">PostgreSQL 16</text>
+      <text x="140" y="88" font-size="11" fill="#DC2626" text-anchor="middle">Không mở Public Internet</text>
+      <text x="140" y="106" font-size="11" fill="#1D4ED8" text-anchor="middle">Internal TCP Port: 5432</text>
+
+      <rect x="15" y="125" width="250" height="210" rx="4" fill="#EFF6FF" stroke="#93C5FD"/>
+      <text x="140" y="145" font-size="11" font-weight="bold" fill="#1E3A8A" text-anchor="middle">Schema &amp; Migrations</text>
+      <text x="140" y="165" font-size="10" fill="#334155" text-anchor="middle">• 20 bảng quan hệ (users, orders,...)</text>
+      <text x="140" y="183" font-size="10" fill="#334155" text-anchor="middle">• 11 enums (OrderStatus, Size,...)</text>
+      <text x="140" y="201" font-size="10" fill="#334155" text-anchor="middle">• Tiền tệ: Decimal(12, 0)</text>
+      <text x="140" y="219" font-size="10" fill="#334155" text-anchor="middle">• Định lượng: Decimal(14, 3)</text>
+      <text x="140" y="237" font-size="10" fill="#334155" text-anchor="middle">• JSONB: reserved_ingredients</text>
+      <text x="140" y="255" font-size="10" fill="#059669" text-anchor="middle">• Prisma migration deploy an toàn</text>
+      <text x="140" y="273" font-size="10" fill="#15803D" text-anchor="middle">• Idempotent Seed Scripts</text>
+      <text x="140" y="291" font-size="10" fill="#475569" text-anchor="middle">• Audit Trail: rawResponse, needsReview</text>
+      <text x="140" y="315" font-size="10" fill="#1E40AF" text-anchor="middle">Health: pg_isready (Internal TCP)</text>
+
+      <rect x="15" y="355" width="250" height="135" rx="4" fill="#DBEAFE" stroke="#1D4ED8" stroke-dasharray="4,3"/>
+      <text x="140" y="380" font-size="11" font-weight="bold" fill="#1E3A8A" text-anchor="middle">Persistent Storage Volume</text>
+      <text x="140" y="405" font-size="10" fill="#334155" text-anchor="middle">Đĩa cứng SSD Cloud Enterprise</text>
+      <text x="140" y="425" font-size="10" fill="#334155" text-anchor="middle">Mount: /var/lib/postgresql/data</text>
+      <text x="140" y="445" font-size="10" fill="#15803D" text-anchor="middle">Snapshot sao lưu tự động hàng ngày</text>
+      <text x="140" y="465" font-size="10" fill="#DC2626" text-anchor="middle">Chống thất thoát dữ liệu khi restart</text>
+    </g>
+
+    <!-- Internal Arrow: API to DB -->
+    <line x1="700" y1="312" x2="730" y2="312" stroke="#1D4ED8" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <text x="715" y="302" font-size="9" fill="#1D4ED8" text-anchor="middle">Internal TCP 5432</text>
+  </g>
+
+  <!-- ==================== CROSS CONNECTIONS ==================== -->
+  <!-- Client to Prod Web -->
+  <path d="M 360 210 Q 380 210 410 465" fill="none" stroke="#0284C7" stroke-width="1.8" marker-end="url(#arrow)"/>
+  <rect x="350" y="260" width="105" height="28" rx="4" fill="#FFFFFF" stroke="#02

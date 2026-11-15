@@ -1,0 +1,7 @@
+- **Tiêu đề**: ADR-005: Tổ chức Frontend Mobile-First Web/PWA và đồng bộ trạng thái giỏ hàng
+- **Trạng thái**: Accepted
+- **Bối cảnh**: Giao diện người dùng cần trải nghiệm mượt mà trên thiết bị di động (Mobile-First), cho phép khách vãng lai thêm món vào giỏ trước khi đăng nhập và tự động gộp giỏ sau khi xác thực.
+- **Quyết định**: Xây dựng `apps/web` theo hướng Mobile-First Web/PWA (React 19 + TypeScript + Vite SPA, tương thích kiến trúc phân tách Frontend CDN/Web Service của Next.js), quản lý phiên bằng JWT (`brewlite_access_token`) và đồng bộ giỏ khách qua endpoint `POST /api/cart/sync` kèm mã biên nhận `syncId`.
+- **Hệ quả**:
+  - *Tích cực*: Tốc độ chuyển trang tức thì, build ra static bundle/container gọn nhẹ dễ dàng phân phối qua CDN (Vercel/Render/Cloudflare) hoặc Docker; không làm mất giỏ hàng của khách khi chuyển từ trạng thái vãng lai sang đăng nhập.
+  - *Đánh đổi*: Cần kiểm soát đồng bộ giữa nhiều tab trình duyệt bằng Web Locks / `localStorage` event.
