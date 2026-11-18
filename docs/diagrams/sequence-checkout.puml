@@ -15,10 +15,10 @@ skinparam sequenceGroupBorderColor #64748B
 skinparam noteBackgroundColor #FFFBEB
 skinparam noteBorderColor #D6B87A
 title SD03 - ĐẶT VÀ THANH TOÁN ĐƠN HÀNG
-caption Task 2.2 - Mô hình theo đặc tả Task 1.3 - Có Activation Bar
+caption Task 2.2 - Mô hình theo đặc tả Task 1.3
 autonumber
 actor "Customer\nKhách hàng" as customer
-boundary "React/Vite UI\nGiao diện BrewLite" as ui
+boundary "Next.js UI\nGiao diện BrewLite" as ui
 control "NestJS API\nAuth / Cart / Orders / Payments" as api
 database "Database\nPostgreSQL" as db
 participant "Payment Service\nVí điện tử / Cổng thẻ" as gateway
