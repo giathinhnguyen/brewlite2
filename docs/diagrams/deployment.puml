@@ -1,0 +1,100 @@
+@startuml deployment-brewlite
+!theme plain
+skinparam componentStyle uml2
+skinparam defaultFontName "Segoe UI"
+skinparam shadowing false
+skinparam node {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+}
+skinparam database {
+  BackgroundColor #EFF6FF
+  BorderColor #1D4ED8
+}
+skinparam cloud {
+  BackgroundColor #F0FDF4
+  BorderColor #15803D
+}
+
+title UML Deployment Diagram – Hệ thống BrewLite (Local, CI/CD & Production)
+footer Repository: https://github.com/giathinhnguyen/brewlite2.git
+
+node "Thiết bị Người dùng (Customer / Admin Device)" as ClientDevice <<device>> {
+  node "Mobile / Desktop Web Browser" as Browser <<executionEnvironment>> {
+    artifact "BrewLite Mobile-First Web/PWA\n(Next.js PWA Client Bundle)" as ClientBundle
+  }
+}
+
+package "Ranh giới Local Development (Docker Compose)" as LocalBoundary {
+  node "Docker Host (Developer Machine)" as LocalDocker <<device>> {
+    node "Container: brewlite-web\n(Node 22 + Next.js :3001)" as LocalWeb <<container>>
+    node "Container: brewlite-api\n(Node 22 + NestJS :3000)" as LocalAPI <<container>>
+    database "Container: brewlite-postgres\n(PostgreSQL 16 :5432)" as LocalDB <<database>> {
+      folder "Volume: postgres_data" as LocalVol
+    }
+    LocalWeb --> LocalAPI : "HTTP :3000/api"
+    LocalAPI --> LocalDB : "TCP :5432"
+  }
+}
+
+package "Ranh giới CI/CD Pipeline (GitHub Actions - giathinhnguyen/brewlite2)" as CIBoundary {
+  node "GitHub Actions Runner" as GHARunner <<executionEnvironment>> {
+    component "CI/CD Pipeline\n(Lint -> Test -> Build Next.js & NestJS -> Migrate -> Smoke Test)" as Pipeline
+    artifact "GitHub Encrypted Secrets\n(PROD_DATABASE_URL, DEPLOY_HOOK, REGISTRY_TOKEN)" as CISecrets
+  }
+  node "GitHub Container Registry (ghcr.io/giathinhnguyen)" as Registry <<registry>> {
+    artifact "brewlite-web:<commit-sha>" as WebImage
+    artifact "brewlite-api:<commit-sha>" as ApiImage
+  }
+  Pipeline ..> CISecrets : "<<reads>>"
+  Pipeline --> Registry : "HTTPS :443\nDocker Push"
+}
+
+package "Ranh giới Production Environment (Render / Railway Cloud)" as ProdBoundary {
+  node "Edge CDN / Web Service" as EdgeNode <<cloud>> {
+    node "Container / Edge: brewlite-web" as ProdWeb <<container>> {
+      artifact "Next.js Mobile-First/PWA Build" as WebArtifact
+      artifact "Env: NEXT_PUBLIC_API_URL,\nNEXT_PUBLIC_GOOGLE_CLIENT_ID" as WebEnv
+    }
+  }
+
+  node "Application Runtime (Private VPC)" as AppNode <<cloud>> {
+    node "Container: brewlite-api (Node 22 Slim)" as ProdAPI <<container>> {
+      component "NestJS API Server (:3000)\nGlobal Prefix: /api" as NestServer
+      component "Health Check Endpoint\nGET /api/health" as HealthEndpoint
+      component "Stdout/Stderr Logger\n(Cloud Log Collector)" as AppLogger
+      artifact "Secret / Env Store:\nDATABASE_URL, JWT_SECRET, WEB_ORIGIN,\nSMTP_*, VNPAY_*, GOOGLE_CLIENT_ID\n(BANK_TRANSFER_DEMO_ENABLED=false)" as ApiSecrets
+    }
+  }
+
+  node "Private Database Subnet (Non-Public)" as DBNode <<cloud>> {
+    database "Managed PostgreSQL 16 (:5432)\nHealthcheck: pg_isready" as ProdDB <<database>> {
+      folder "Persistent Storage Volume (SSD)\n/var/lib/postgresql/data\n(20 tables + _prisma_migrations)" as ProdStorage
+    }
+  }
+
+  ProdAPI ..> ApiSecrets : "<<injects>>"
+  NestServer --> ProdDB : "Internal TLS/TCP :5432\n(Prisma Client Pool)"
+}
+
+cloud "Dịch vụ Bên ngoài (External Services)" as ExtCloud {
+  node "VNPay Sandbox Gateway" as VNPay <<external>>
+  node "VietQR API (img.vietqr.io)" as VietQR <<external>>
+  node "Google Identity Services" as GoogleAuth <<external>>
+  node "Gmail SMTP Server" as SMTP <<external>>
+}
+
+Browser --> ProdWeb : "HTTPS :443\n(Tải giao diện Next.js PWA)"
+Browser --> NestServer : "HTTPS :443 -> :3000/api/*\n(REST JSON + Bearer JWT)"
+Browser --> VietQR : "HTTPS :443\n(Tải ảnh QR SVG)"
+
+Registry --> ProdWeb : "HTTPS :443 (Pull Image)"
+Registry --> ProdAPI : "HTTPS :443 (Pull Image)"
+Pipeline --> ProdDB : "TCP :5432 (prisma migrate deploy)"
+Pipeline --> HealthEndpoint : "HTTPS :443/api/health\n(Smoke Test)"
+
+NestServer <--> VNPay : "HTTPS :443\n(Redirect / IPN HMAC-SHA512 / QueryDR)"
+NestServer --> GoogleAuth : "HTTPS :443 (Verify Token)"
+NestServer --> SMTP : "SMTPS :465 (Gửi OTP)"
+
+@enduml
