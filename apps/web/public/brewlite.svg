@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>BrewLite</title>
+  <rect width="64" height="64" rx="16" fill="#3b241c"/>
+  <g fill="none" stroke="#f5e7d5" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5">
+    <path d="M18 28h26v12a10 10 0 0 1-10 10h-6a10 10 0 0 1-10-10Z"/>
+    <path d="M44 30h3a6 6 0 0 1 0 12h-3M16 53h32M25 21v-6m8 6v-9m8 9v-6"/>
+  </g>
+</svg>
