@@ -28,3 +28,16 @@ pnpm --filter api test:e2e test/checkout-inventory.e2e-spec.ts -t INT-T01
 ```
 
 Lần xác minh local, PostgreSQL 18 chạy tạm trên máy kiểm thử. Prisma CLI báo lỗi schema engine khi chạy migration trên máy này, nên các tệp SQL migration được áp trực tiếp theo thứ tự vào database thử nghiệm. Vitest xác nhận 3 ca HTTP, 1 ca unit và 1 ca giao dịch pass.
+## Phạm vi FR-06 đến FR-10
+
+Các yêu cầu tiếp theo đã được đối chiếu với API hiện có và bổ sung phần còn thiếu cho cập nhật trạng thái đơn hàng:
+
+| Mã YC | Chức năng | API / thành phần | Minh chứng kiểm thử |
+|---|---|---|---|
+| FR-06 | Thanh toán | `POST /api/payments` | `checkout-inventory.e2e-spec.ts` – các luồng VNPay, ZaloPay và thanh toán demo |
+| FR-07 | Theo dõi đơn | `GET /api/orders/:id` | `OrdersController.detail()` và các ca kiểm thử checkout/refund |
+| FR-08 | Khuyến mãi | `POST /api/promotions/quote` | `promotions.e2e-spec.ts` |
+| FR-09 | Lịch sử đơn | `GET /api/orders` | `OrdersController.list()` |
+| FR-10 | Quản trị cập nhật trạng thái | `PATCH /api/orders/:id` | `OrdersService.updateStatus()` và `orders.service.spec.ts` |
+
+FR-06 đến FR-09 đã có các luồng nghiệp vụ trong mã nguồn. FR-10 được bảo vệ bằng quyền `ADMIN`, kiểm tra trạng thái hợp lệ và kiểm tra phiên bản `updatedAt` để tránh ghi đè dữ liệu mới.

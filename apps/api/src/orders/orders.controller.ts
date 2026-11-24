@@ -9,11 +9,13 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard, type AuthenticatedRequest } from '../auth/auth.guard.js';
+import { AdminGuard } from '../admin/admin.guard.js';
 import { OrdersService } from './orders.service.js';
 
 @ApiTags('orders')
@@ -36,6 +38,11 @@ export class OrdersController {
     @Param('id') id: string,
   ) {
     return this.orders.owned(req.user.id, id);
+  }
+  @Patch(':id')
+  @UseGuards(AdminGuard)
+  updateStatus(@Param('id') id: string, @Body() body: unknown) {
+    return this.orders.updateStatus(id, body);
   }
   @Post(':id/cancel') cancel(
     @Req() req: AuthenticatedRequest,

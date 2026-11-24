@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { OrderStatus, Prisma } from '@prisma/client';
 import { createHash, randomUUID } from 'node:crypto';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { InventoryService } from '../inventory/inventory.service.js';
@@ -39,6 +39,23 @@ const details = {
     orderBy: { createdAt: 'desc' as const },
   },
 };
+
+const editableStatuses = new Set<OrderStatus>([
+  'PENDING_PAYMENT',
+  'PAYMENT_FAILED',
+  'PAID',
+  'CANCELLED',
+  'EXPIRED',
+  'REFUND_PENDING',
+  'REFUNDED',
+]);
+
+function stale(actual: Date, expected: unknown) {
+  if (typeof expected !== 'string' || actual.toISOString() !== expected)
+    throw new ConflictException(
+      'Dá»¯ liá»‡u Ä‘Æ¡n Ä‘Ã£ thay Ä‘á»•i. HÃ£y táº£i láº¡i trÆ°á»›c khi sá»­a.',
+    );
+}
 
 @Injectable()
 export class OrdersService {
@@ -267,6 +284,36 @@ export class OrdersService {
       include: details,
       orderBy: { createdAt: 'desc' },
       take: 100,
+    });
+  }
+
+  async updateStatus(idValue: string, body: unknown) {
+    if (!isUuid(idValue))
+      throw new BadRequestException('MÃ£ Ä‘Æ¡n khÃ´ng há»£p lá»‡');
+    const orderId = idValue;
+    const input = validateObject(body, ['status', 'updatedAt']);
+    if (
+      typeof input.status !== 'string' ||
+      !editableStatuses.has(input.status as OrderStatus)
+    )
+      throw new BadRequestException('Tráº¡ng thÃ¡i Ä‘Æ¡n khÃ´ng há»£p lá»‡');
+
+    const status = input.status as OrderStatus;
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.order.findUnique({ where: { id: orderId } });
+      if (!current) throw new NotFoundException('KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n hÃ ng');
+      if (input.updatedAt !== undefined)
+        stale(current.updatedAt, input.updatedAt);
+
+      if (status === 'PAID' && current.status !== 'PAID')
+        await this.markPaid(tx, orderId);
+      else if (current.status !== status)
+        await tx.order.update({ where: { id: orderId }, data: { status } });
+
+      return tx.order.findUniqueOrThrow({
+        where: { id: orderId },
+        include: details,
+      });
     });
   }
 
