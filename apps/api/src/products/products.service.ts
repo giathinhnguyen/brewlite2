@@ -12,10 +12,13 @@ export class ProductsService {
   private async withAvailability<T extends { sizes: { id: string }[] }>(
     product: T,
   ) {
+    const availability = await this.inventory.availabilityMany(
+      product.sizes.map((size) => size.id),
+    );
     const sizes = await Promise.all(
       product.sizes.map(async (size) => ({
         ...size,
-        stockQuantity: await this.inventory.availability(size.id),
+        stockQuantity: availability.get(size.id) ?? 0,
         customizationPolicies: await this.prisma.customizationPolicy.findMany({
           where: { productSizeId: size.id },
         }),

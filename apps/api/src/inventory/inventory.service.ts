@@ -27,16 +27,44 @@ export class InventoryService {
   async requirements(tx: Prisma.TransactionClient, lines: InventoryLine[]) {
     const sizes = await tx.productSize.findMany({
       where: { id: { in: [...new Set(lines.map((i) => i.productSizeId))] } },
-      include: {
-        product: { include: { category: true } },
-        customizationPolicies: true,
-        ingredients: { include: { ingredient: { include: { stock: true } } } },
+      select: {
+        id: true,
+        isActive: true,
+        product: {
+          select: {
+            name: true,
+            isActive: true,
+            category: { select: { isActive: true } },
+          },
+        },
+        customizationPolicies: {
+          select: { axis: true, allowedLevels: true },
+        },
+        ingredients: {
+          select: {
+            ingredientId: true,
+            quantity: true,
+            adjustmentGroup: true,
+            ingredient: {
+              select: {
+                isActive: true,
+                unitCostVnd: true,
+                stock: { select: { onHand: true, reserved: true } },
+              },
+            },
+          },
+        },
       },
     });
+    const sizeById = new Map(sizes.map((size) => [size.id, size]));
     const usage = new Map<string, Prisma.Decimal>();
+    const stocks = new Map<
+      string,
+      { onHand: Prisma.Decimal; reserved: Prisma.Decimal }
+    >();
     let cost = new Prisma.Decimal(0);
     for (const line of lines) {
-      const size = sizes.find((s) => s.id === line.productSizeId);
+      const size = sizeById.get(line.productSizeId);
       if (
         !size ||
         !size.isActive ||
@@ -53,11 +81,14 @@ export class InventoryService {
         line.quantity > 10000
       )
         throw new BadRequestException('Số lượng không hợp lệ');
+      const policiesByAxis = new Map(
+        size.customizationPolicies.map((item) => [item.axis, item]),
+      );
       for (const [axis, value] of [
         ['SUGAR', line.sweetnessLevel ?? 'HUNDRED'],
         ['ICE', line.iceLevel ?? 'HUNDRED'],
       ] as const) {
-        const policy = size.customizationPolicies.find((p) => p.axis === axis);
+        const policy = policiesByAxis.get(axis);
         if (!policy || !policy.allowedLevels.includes(levelPercent[value]))
           throw new BadRequestException(
             `Món ${size.product.name} không hỗ trợ mức ${axis === 'SUGAR' ? 'ngọt' : 'đá'} đã chọn`,
@@ -86,10 +117,15 @@ export class InventoryService {
             quantity,
           ),
         );
+        stocks.set(recipe.ingredientId, {
+          onHand: recipe.ingredient.stock.onHand,
+          reserved: recipe.ingredient.stock.reserved,
+        });
         cost = cost.plus(quantity.times(recipe.ingredient.unitCostVnd));
       }
     }
     return {
+      stocks,
       usage: [...usage]
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([ingredientId, quantity]) => ({
@@ -103,9 +139,7 @@ export class InventoryService {
   async assertAvailable(tx: Prisma.TransactionClient, lines: InventoryLine[]) {
     const result = await this.requirements(tx, lines);
     for (const item of result.usage) {
-      const stock = await tx.ingredientStock.findUnique({
-        where: { ingredientId: item.ingredientId },
-      });
+      const stock = result.stocks.get(item.ingredientId);
       if (!stock || stock.onHand.minus(stock.reserved).lt(item.quantity))
         throw new ConflictException(
           'Không đủ nguyên liệu cho các món đã chọn. Vui lòng giảm số lượng',
@@ -121,14 +155,13 @@ export class InventoryService {
     tx: Prisma.TransactionClient = this.prisma,
   ) {
     try {
-      const { usage } = await this.requirements(tx, [
+      const { usage, stocks } = await this.requirements(tx, [
         { productSizeId, quantity: 1, sweetnessLevel, iceLevel },
       ]);
       let available = 10000;
       for (const item of usage) {
-        const stock = await tx.ingredientStock.findUniqueOrThrow({
-          where: { ingredientId: item.ingredientId },
-        });
+        const stock = stocks.get(item.ingredientId);
+        if (!stock) return 0;
         available = Math.min(
           available,
           stock.onHand
@@ -143,6 +176,96 @@ export class InventoryService {
       if (error instanceof BadRequestException) return 0;
       throw error;
     }
+  }
+
+  async availabilityMany(
+    productSizeIds: string[],
+    tx: Prisma.TransactionClient = this.prisma,
+  ) {
+    const ids = [...new Set(productSizeIds)];
+    if (!ids.length) return new Map<string, number>();
+
+    const sizes = await tx.productSize.findMany({
+      where: { id: { in: ids } },
+      select: {
+        id: true,
+        isActive: true,
+        product: {
+          select: {
+            isActive: true,
+            category: { select: { isActive: true } },
+          },
+        },
+        customizationPolicies: {
+          select: { axis: true, allowedLevels: true },
+        },
+        ingredients: {
+          select: {
+            ingredientId: true,
+            quantity: true,
+            adjustmentGroup: true,
+            ingredient: {
+              select: {
+                isActive: true,
+                stock: { select: { onHand: true, reserved: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const result = new Map(ids.map((id) => [id, 0]));
+    for (const size of sizes) {
+      if (
+        !size.isActive ||
+        !size.product.isActive ||
+        !size.product.category.isActive ||
+        !size.ingredients.length
+      )
+        continue;
+
+      const policies = new Map(
+        size.customizationPolicies.map((policy) => [policy.axis, policy]),
+      );
+      if (
+        !policies.get('SUGAR')?.allowedLevels.includes(100) ||
+        !policies.get('ICE')?.allowedLevels.includes(100)
+      )
+        continue;
+
+      const usage = new Map<string, Prisma.Decimal>();
+      let valid = true;
+      for (const recipe of size.ingredients) {
+        if (
+          !recipe.ingredient.isActive ||
+          !recipe.ingredient.stock ||
+          recipe.quantity.lte(0)
+        ) {
+          valid = false;
+          break;
+        }
+        usage.set(
+          recipe.ingredientId,
+          (usage.get(recipe.ingredientId) ?? new Prisma.Decimal(0)).plus(
+            recipe.quantity,
+          ),
+        );
+      }
+      if (!valid) continue;
+
+      let available = 10000;
+      for (const recipe of size.ingredients) {
+        const stock = recipe.ingredient.stock!;
+        const quantity = usage.get(recipe.ingredientId)!;
+        available = Math.min(
+          available,
+          stock.onHand.minus(stock.reserved).div(quantity).floor().toNumber(),
+        );
+      }
+      result.set(size.id, Math.max(0, available));
+    }
+    return result;
   }
 
   async reserve(
