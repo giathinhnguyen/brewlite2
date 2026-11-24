@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: BrewLite CI Pipeline
 
 on:
   push:
@@ -6,12 +6,23 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+  # CI-only values; the local .env file is intentionally not required.
+  DATABASE_URL: postgresql://brewlite_ci:brewlite_ci@localhost:5432/brewlite_ci?schema=public
+  JWT_SECRET: ci-only-secret
+
 jobs:
   validate:
+    name: Lint, unit tests and build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup pnpm
@@ -22,17 +33,70 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm -r run lint
+      - name: Generate Prisma client
+        run: pnpm --filter api exec prisma generate
 
-      - name: Run tests
-        run: pnpm -r run test
+      - name: Lint API and web
+        run: pnpm --filter api --filter web run lint
 
-      - name: Build
-        run: pnpm -r run build
+      - name: Run unit and frontend tests
+        run: pnpm --filter api --filter web run test
+
+      - name: Build API and web
+        run: pnpm --filter api --filter web run build
+
+  integration:
+    name: API integration tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: brewlite_ci
+          POSTGRES_PASSWORD: brewlite_ci
+          POSTGRES_DB: brewlite_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U brewlite_ci -d brewlite_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12.14.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter api exec prisma generate
+
+      - name: Apply database migrations
+        run: pnpm --filter api exec prisma migrate deploy
+
+      - name: Run API integration tests
+        env:
+          NODE_ENV: test
+        run: pnpm --filter api run test:e2e

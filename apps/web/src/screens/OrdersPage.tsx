@@ -136,7 +136,7 @@ export default function OrdersPage() {
     }
   }
   const watchKey = orders.filter(order => ["PENDING_PAYMENT", "PAYMENT_FAILED", "REFUND_PENDING"].includes(order.status) ||
-    (order.status === "PAID" && order.paidAt && Date.parse(order.paidAt) + 135000 > Date.now())).map(order => order.id).join(",");
+    (order.status === "PAID" && order.paidAt && Date.parse(order.paidAt) + 135000 > now)).map(order => order.id).join(",");
   const overdueKey = orders.filter(order => ["PENDING_PAYMENT", "PAYMENT_FAILED"].includes(order.status) && paymentWindowExpired(order, now)).map(order => order.id).join(",");
   useEffect(() => { latestOrders.current = orders; }, [orders]);
   useEffect(() => {

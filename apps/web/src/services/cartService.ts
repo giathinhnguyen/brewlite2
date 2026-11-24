@@ -75,7 +75,7 @@ export const cartService = {
         const quantity = Number(itemData.quantity || 1);
         // Nếu chưa đăng nhập: Lưu vào LocalStorage
         const localData = localStorage.getItem(LOCAL_STORAGE_KEY);
-        let items: any[] = localData ? JSON.parse(localData) : [];
+        const items: any[] = localData ? JSON.parse(localData) : [];
 
         // Kiểm tra tồn kho cho khách vãng lai
         const currentQtyInCart = items
