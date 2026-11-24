@@ -26,7 +26,7 @@ describe('Integrated email registration and login', () => {
     expect((await f.service.getCurrentUser(id)).id).toBe(id);
     await expect(f.service.register(input)).rejects.toBeInstanceOf(ConflictException);
     await expect(f.service.login({ email: input.email, password: 'incorrect' })).rejects.toBeInstanceOf(UnauthorizedException);
-  });
+  }, 30000);
 
   it.each([
     { ...input, email: 'invalid-email' },

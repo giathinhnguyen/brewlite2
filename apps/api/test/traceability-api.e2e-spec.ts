@@ -42,7 +42,10 @@ describe('Traceability matrix API scenarios', () => {
     topping: { findMany: vi.fn().mockResolvedValue([topping]) },
     customizationPolicy: { findMany: vi.fn().mockResolvedValue([]) },
   };
-  const inventory = { availability: vi.fn().mockResolvedValue(8) };
+  const inventory = {
+    availability: vi.fn().mockResolvedValue(8),
+    availabilityMany: vi.fn().mockResolvedValue(new Map([['size-m', 8]])),
+  };
 
   beforeAll(async () => {
     const registration = await auth.service.register({

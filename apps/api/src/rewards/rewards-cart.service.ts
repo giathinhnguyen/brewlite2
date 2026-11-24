@@ -29,7 +29,18 @@ export class RewardsCartService {
 
   private originalCart(tx: Prisma.TransactionClient) {
     // Hàm giỏ gốc được tái sử dụng với client của cùng transaction.
-    return new CartsService(tx as PrismaService);
+    // Transaction client của Prisma không có $transaction lồng nhau. CartsService
+    // vẫn cần phương thức này, nên chuyển tiếp callback về transaction hiện tại.
+    const compatibleClient = new Proxy(tx as object, {
+      get: (target, property, receiver) => {
+        if (property === '$transaction') {
+          return async <T>(work: (client: Prisma.TransactionClient) => T) =>
+            work(tx);
+        }
+        return Reflect.get(target, property, receiver);
+      },
+    }) as unknown as PrismaService;
+    return new CartsService(compatibleClient);
   }
 
   async getCart(userId: string, tx: Prisma.TransactionClient = this.prisma) {
